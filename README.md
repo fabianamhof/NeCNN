@@ -1,1 +1,1 @@
-# bachelor_NECNN
+# NeCNN
