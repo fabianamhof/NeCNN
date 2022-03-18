@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+neat-python = "*"
+graphviz = "*"
+matplotlib = "*"
+pyqt5 = "*"
+torch = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"

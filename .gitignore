@@ -1,0 +1,25 @@
+.coveralls.yml
+docs/_build/**
+_build/**
+cover
+.coverage
+neat-checkpoint-*
+fitness_history.csv
+speciation.csv
+speciation.svg
+Digraph.*
+avg_fitness.svg
+species_fitness.csv
+.mypy_cache
+*~
+*.pyc
+*.pyo
+__pycache__/
+*stats*.dat*
+
+# pycharm cache folder
+.idea/
+/src/test/Classification
+/src/test/Classification.svg
+/src/test/Feature_extraction
+/src/test/Feature_extraction.svg
