@@ -39,7 +39,7 @@ class TorchFeedForwardNetwork(nn.Module):
         # Gather expressed connections.
         connections = [cg.key for cg in genome.connections.values() if cg.enabled]
 
-        layers = feed_forward_layers(config.genome_config.input_keys, config.genome_config.output_keys, connections)
+        layers = feed_forward_layers(config.genome_config.classification_genome_config.input_keys, config.genome_config.classification_genome_config.output_keys, connections)
         node_evals = []
         for layer in layers:
             for node in layer:
@@ -53,10 +53,10 @@ class TorchFeedForwardNetwork(nn.Module):
                         node_expr.append("v[{}] * {:.7e}".format(inode, cg.weight))
 
                 ng = genome.nodes[node]
-                aggregation_function = config.genome_config.aggregation_function_defs.get(ng.aggregation)
-                activation_function = config.genome_config.activation_defs.get(ng.activation)
+                aggregation_function = config.genome_config.classification_genome_config.aggregation_function_defs.get(ng.aggregation)
+                activation_function = config.genome_config.classification_genome_config.activation_defs.get(ng.activation)
                 node_evals.append(NNNode(node, activation_function, ng.bias, inputs))
-        return TorchFeedForwardNetwork(config.genome_config.input_keys, config.genome_config.output_keys, node_evals)
+        return TorchFeedForwardNetwork(config.genome_config.classification_genome_config.input_keys, config.genome_config.classification_genome_config.output_keys, node_evals)
 
 
 class NNNode(nn.Module):

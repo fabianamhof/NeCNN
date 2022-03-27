@@ -9,6 +9,7 @@ graphviz = "*"
 matplotlib = "*"
 pyqt5 = "*"
 torch = "*"
+numpy = "*"
 
 [dev-packages]
 

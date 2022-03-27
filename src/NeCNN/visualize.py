@@ -140,14 +140,14 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
     dot = graphviz.Digraph(format=fmt, node_attr=node_attrs)
 
     inputs = set()
-    for k in config.genome_config.input_keys:
+    for k in config.genome_config.classification_genome_config.input_keys:
         inputs.add(k)
         name = node_names.get(k, str(k))
         input_attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(k, 'lightgray')}
         dot.node(name, _attributes=input_attrs)
 
     outputs = set()
-    for k in config.genome_config.output_keys:
+    for k in config.genome_config.classification_genome_config.output_keys:
         outputs.add(k)
         name = node_names.get(k, str(k))
         node_attrs = {'style': 'filled', 'fillcolor': node_colors.get(k, 'lightblue')}

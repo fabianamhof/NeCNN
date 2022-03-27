@@ -6,13 +6,17 @@ from __future__ import print_function
 
 import os
 import neat
+import numpy as np
+import torch
+import torch.nn as nn
 
 from src.NeCNN import visualize
-from src.NeCNN.cnn_genome_1 import *
-from src.NeCNN.pytorch_neat import *
 
+from src.NeCNN.Genomes.cnn_genome_1 import CnnGenome1
+from src.NeCNN.pytorch_neat import TorchFeedForwardNetwork
 
 # 2-input XOR inputs and expected outputs.
+
 xor_inputs = np.array([[0.0, 0.0], [0.0, 1.0], [1.0, 0.0], [1.0, 1.0]])
 xor_outputs = np.array([[0.0],[1.0],[1.0],[0.0]])
 
