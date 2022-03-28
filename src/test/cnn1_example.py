@@ -12,7 +12,7 @@ import torch.nn as nn
 
 from src.NeCNN import visualize
 
-from src.NeCNN.Genomes.cnn_genome_1 import CnnGenome1
+from src.NeCNN.cnn_genome_1 import CnnGenome1
 from src.NeCNN.pytorch_neat import TorchFeedForwardNetwork
 
 # 2-input XOR inputs and expected outputs.
