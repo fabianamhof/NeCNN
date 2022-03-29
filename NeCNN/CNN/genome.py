@@ -1,6 +1,6 @@
 from neat.genome import *
 
-from src.NeCNN.feature_extraction_genes import FENodeGene, FEConnectionGene
+from genes import FENodeGene, FEConnectionGene
 
 class CNNGenomeConfig(DefaultGenomeConfig):
     def __init__(self, params):

@@ -1,7 +1,7 @@
 from neat.attributes import FloatAttribute, BoolAttribute
 from neat.genes import BaseGene
 
-from src.NeCNN.attributes import KernelAttribute
+from NeCNN.CNN.attributes import KernelAttribute
 
 import numpy as np
 

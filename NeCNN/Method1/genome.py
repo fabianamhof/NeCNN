@@ -4,7 +4,7 @@ from __future__ import division, print_function
 from neat.genome import *
 import json
 
-from neat.config import ConfigParameter, write_pretty_params
+from neat.config import ConfigParameter
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 
 
@@ -17,7 +17,7 @@ def filter_params(keyword, params):
     return filtered_params
 
 
-class CnnGenome1Config(object):
+class NECnnGenomeConfig_M1(object):
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
                             'partial_nodirect', 'partial', 'partial_direct']
@@ -33,13 +33,13 @@ class CnnGenome1Config(object):
         self.classification_genome_config = DefaultGenomeConfig(classification_params)
 
 
-class CnnGenome1(object):
+class NECnnGenome_M1(object):
 
     @classmethod
     def parse_config(cls, param_dict):
         param_dict['classification_node_gene_type'] = DefaultNodeGene
         param_dict['classification_connection_gene_type'] = DefaultConnectionGene
-        return CnnGenome1Config(param_dict)
+        return NECnnGenomeConfig_M1(param_dict)
 
     def __init__(self, key):
         # Unique identifier for a genome instance.

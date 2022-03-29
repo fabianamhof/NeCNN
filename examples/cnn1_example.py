@@ -10,10 +10,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from src.NeCNN import visualize
+from NeCNN import visualize
 
-from src.NeCNN.cnn_genome_1 import CnnGenome1
-from src.NeCNN.pytorch_neat import TorchFeedForwardNetwork
+from NeCNN.Method1.genome import NECnnGenome_M1
+from NeCNN.pytorch_converter import TorchFeedForwardNetwork
 
 # 2-input XOR inputs and expected outputs.
 
@@ -50,7 +50,7 @@ def train_pytorch(net, iterations = 10000):
 
 def run(config_file):
     # Load configuration.
-    config = neat.Config(CnnGenome1, neat.DefaultReproduction,
+    config = neat.Config(NECnnGenome_M1, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
 
