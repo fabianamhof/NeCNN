@@ -6,7 +6,8 @@ from neat.graphs import feed_forward_layers
 from . import visualize
 
 
-class TorchFeedForwardNetwork(nn.Module):
+
+class TorchFeedForwardNetwork(torch.jit.ScriptModule):
     def __init__(self, inputs, outputs, node_evals):
         super().__init__()
         self.input_nodes = inputs
@@ -15,39 +16,34 @@ class TorchFeedForwardNetwork(nn.Module):
         self.values = dict()
 
     def forward(self, inputs):
-        start = time.perf_counter()
-        #self.values = dict(
-        #   (key, torch.tensor(np.zeros(len(inputs)).reshape((len(inputs), 1)).astype(np.float32))) for key in
-        #    self.input_nodes + self.output_nodes)
+        # start = time.perf_counter()
         self.values = dict()
-        end = time.perf_counter()
-        #print(f"Conv, Init dict: {end-start}")
-        start = time.perf_counter()
+        # end = time.perf_counter()
+        # print(f"Conv, Init dict: {end-start}")
+        # start = time.perf_counter()
         if len(self.input_nodes) != len(inputs[0]):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
         if not torch.is_tensor(inputs):
             inputs = torch.from_numpy(inputs).float()
 
-        end = time.perf_counter()
-        #print(f"Conv, Error prevention: {end - start}")
-        start = time.perf_counter()
+        # end = time.perf_counter()
+        # print(f"Conv, Error prevention: {end - start}")
+        # start = time.perf_counter()
         for i, k in enumerate(self.input_nodes):
             self.values[k] = (inputs[:, i])[:, None]
-        end = time.perf_counter()
-        #print(f"Conv, Init inputs: {end - start}")
-        start = time.perf_counter()
+        # end = time.perf_counter()
+        # print(f"Conv, Init inputs: {end - start}")
+        # start = time.perf_counter()
         for node in self.node_evals:
-            node_inputs = []
-            for i, w in node.links:
-                node_inputs.append(self.values[i])
+            node_inputs = [self.values[i] for i, w in node.links]
             self.values[node.key] = node.forward(torch.cat(node_inputs, dim=1))
-        end = time.perf_counter()
-        #print(f"Conv, calc values: {end - start}")
-        start = time.perf_counter()
+        # end = time.perf_counter()
+        # print(f"Conv, calc values: {end - start}")
+        # start = time.perf_counter()
         result = torch.cat([self.values[i] for i in self.output_nodes], dim=1)
-        end = time.perf_counter()
-        #print(f"Conv, filter outputs: {end - start}")
+        # end = time.perf_counter()
+        # print(f"Conv, filter outputs: {end - start}")
         return result
 
     @staticmethod
@@ -77,7 +73,7 @@ class TorchFeedForwardNetwork(nn.Module):
                                        config.output_keys, node_evals)
 
 
-class NNNode(nn.Module):
+class NNNode(torch.jit.ScriptModule):
     def __init__(self, node, bias, inputs):
         super().__init__()
         self.key = node
@@ -96,59 +92,3 @@ class NNNode(nn.Module):
 
     def forward(self, inputs):
         return nn.Sigmoid()(self.node(inputs))
-
-
-class TorchFeatureExtractionNetwork(nn.Module):
-    def __init__(self, layers):
-        super().__init__()
-        self.layers = nn.ModuleList(layers)
-
-    def forward(self, inputs):
-        if not torch.is_tensor(inputs):
-            inputs = torch.from_numpy(inputs).float()
-
-        x = inputs
-        for layer in self.layers:
-            x = layer(x)
-        return torch.flatten(x, 1)
-
-    @staticmethod
-    def create(inputs, layer_info):
-        """ Receives the list of inputs and list of layers """
-        layers = []
-        previous_nodes = inputs
-        for layer in layer_info:
-            layers.append(_create_layer(previous_nodes, layer))
-            if "nodes" in layer:
-                previous_nodes = layer["nodes"]
-        return TorchFeatureExtractionNetwork(layers)
-
-
-def _create_layer(num_inputs, layer):
-    if layer["type"] == "conv":
-        return nn.Conv2d(num_inputs, layer["nodes"], layer["kernel_size"])
-    elif layer["type"] == "pool":
-        return nn.MaxPool2d(layer["kernel_size"])
-    elif layer["type"] == "relu":
-        return nn.ReLU()
-
-class TorchCNN(nn.Module):
-    def __init__(self, fe_network, cl_network):
-        super().__init__()
-        self.feature_extraction = fe_network
-        self.classification = cl_network
-
-    def forward(self, inputs):
-        if not torch.is_tensor(inputs):
-            inputs = torch.from_numpy(inputs).float()
-
-        x = inputs
-        x = self.feature_extraction.forward(x)
-        x = self.classification.forward(x)
-        return x
-
-    @staticmethod
-    def create_M1(genome, config):
-        fe_network = TorchFeatureExtractionNetwork.create(config.genome_config.image_channels, config.genome_config.feature_extraction_layers)
-        cl_network = TorchFeedForwardNetwork.create(genome.classification, config.genome_config.classification_genome_config)
-        return TorchCNN(fe_network, cl_network)

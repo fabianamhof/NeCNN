@@ -1,11 +1,10 @@
-import torch.nn as nn
 import torch
+from torch import nn
+from torch import optim
 import torchvision
 import torchvision.transforms as transforms
-import torch.nn.functional as F
-import torch
-from torch import optim
-import numpy as np
+
+from NeCNN.net import Net
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
@@ -16,34 +15,7 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True,
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
 
-features = [
-    nn.Conv2d(1, 20, 5),
-    nn.MaxPool2d(2, 2),
-    nn.ReLU(),
-    nn.Conv2d(20, 20, 5),
-    nn.MaxPool2d(2, 2),
-    nn.ReLU(),
-]
 
-classifier = [
-    nn.Linear(320, 50),
-    nn.ReLU(),
-    nn.Linear(50, 10),
-    nn.ReLU()
-]
-
-
-class Net(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.features = nn.Sequential(*features)
-        self.classifier = nn.Sequential(*classifier)
-
-    def forward(self, x):
-        x = self.features(x)
-        x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        return x
 
 
 def train_pytorch(net, optimizer, criterion, device):
@@ -76,7 +48,7 @@ def train_pytorch(net, optimizer, criterion, device):
     print('Finished Training')
 
 
-def classification_error():
+def classification_error(net):
     correct = 0
     total = 0
     with torch.no_grad():
@@ -86,9 +58,7 @@ def classification_error():
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-            100 * correct / total))
+    return correct / total
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -99,4 +69,4 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
 train_pytorch(net, optimizer, criterion, device)
 torch.save(net.state_dict(), 'results/model_good.pth')
-classification_error()
+print(f"Classification: {classification_error(net)}")

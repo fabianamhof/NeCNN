@@ -23,6 +23,7 @@ WebOb = '==1.8.7'
 necnn = {editable = true, path = "."}
 neat-python = "*"
 torchvision = "*"
+billiard = "*"
 
 [dev-packages]
 

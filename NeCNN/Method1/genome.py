@@ -1,12 +1,15 @@
 """Handles genomes (individuals in the population)."""
 from __future__ import division, print_function
 
+import copy
+
+import torch
 from neat.genome import *
-import json
 import NeCNN.pytorch_converter as converter
-import numpy as np
 from neat.config import ConfigParameter
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
+
+from NeCNN.net import Net
 
 
 def filter_params(keyword, params):
@@ -17,11 +20,27 @@ def filter_params(keyword, params):
 
     return filtered_params
 
-def _classification_num_inputs(image_width, image_height, image_channels, conv_layers):
-    x = np.ones((1, image_channels, image_height, image_width))
-    network = converter.TorchFeatureExtractionNetwork.create(image_channels, conv_layers)
-    result = network.forward(x)
-    return len(result[0])
+def load_model(path, python_class):
+    model = python_class()
+    model.load_state_dict(torch.load(path))
+    return model
+
+def lock_FE(model):
+    # Prevent the trained weights from being modified
+    for param in model.features.parameters():
+        param.requires_grad = False
+    return model
+
+def create_CNN(genome, config):
+    model = config.feature_extraction_model
+    model_copy = copy.deepcopy(model)
+    classifier = converter.TorchFeedForwardNetwork.create(genome.classification, config.classification_genome_config)
+    model_copy.classifier = classifier
+    return model_copy
+
+
+def get_num_features(model):
+    return list(model.classifier.children())[0].in_features
 
 
 class NECnnGenomeConfig_M1(object):
@@ -30,17 +49,17 @@ class NECnnGenomeConfig_M1(object):
                             'partial_nodirect', 'partial', 'partial_direct']
 
     def __init__(self, params):
-        self._params = [ConfigParameter('feature_extraction_layer_info', str),
+        self._params = [ConfigParameter('feature_extraction_model_path', str),
                         ConfigParameter('image_channels', int),
                         ConfigParameter('image_width', int),
                         ConfigParameter('image_height', int)]
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
-        self.feature_extraction_layers = json.loads(self.feature_extraction_layer_info)
+        self.feature_extraction_model = lock_FE(load_model(self.feature_extraction_model_path, Net))
         classification_params = filter_params("classification_", params)
         classification_params["node_gene_type"] = params["classification_node_gene_type"]
         classification_params["connection_gene_type"] = params["classification_connection_gene_type"]
-        classification_params["num_inputs"] = _classification_num_inputs(self.image_width, self.image_height, self.image_channels, self.feature_extraction_layers)
+        classification_params["num_inputs"] = get_num_features(self.feature_extraction_model)
         self.classification_genome_config = DefaultGenomeConfig(classification_params)
 
 

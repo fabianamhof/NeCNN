@@ -5,7 +5,7 @@ pop_size              = 10
 reset_on_extinction   = False
 
 [NECnnGenome_M1]
-feature_extraction_layer_info = [{"nodes": 5, "kernel_size": 3, "type": "conv"}, {"type": "relu"}, {"kernel_size": 2, "type": "pool"}, {"nodes": 5, "kernel_size": 3, "type": "conv"}, {"type": "relu"}, {"kernel_size": 2, "type": "pool"} ]
+feature_extraction_model_path = ../examples/results/model_good.pth
 image_width = 28
 image_height = 28
 image_channels = 1
