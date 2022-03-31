@@ -3,7 +3,8 @@ from __future__ import division, print_function
 
 from neat.genome import *
 import json
-
+import NeCNN.pytorch_converter as converter
+import numpy as np
 from neat.config import ConfigParameter
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 
@@ -16,6 +17,12 @@ def filter_params(keyword, params):
 
     return filtered_params
 
+def _classification_num_inputs(image_width, image_height, image_channels, conv_layers):
+    x = np.ones((1, image_channels, image_height, image_width))
+    network = converter.TorchFeatureExtractionNetwork.create(image_channels, conv_layers)
+    result = network.forward(x)
+    return len(result[0])
+
 
 class NECnnGenomeConfig_M1(object):
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
@@ -23,13 +30,17 @@ class NECnnGenomeConfig_M1(object):
                             'partial_nodirect', 'partial', 'partial_direct']
 
     def __init__(self, params):
-        self._params = [ConfigParameter('feature_extraction_layer_info', str)]
+        self._params = [ConfigParameter('feature_extraction_layer_info', str),
+                        ConfigParameter('image_channels', int),
+                        ConfigParameter('image_width', int),
+                        ConfigParameter('image_height', int)]
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
         self.feature_extraction_layers = json.loads(self.feature_extraction_layer_info)
         classification_params = filter_params("classification_", params)
         classification_params["node_gene_type"] = params["classification_node_gene_type"]
         classification_params["connection_gene_type"] = params["classification_connection_gene_type"]
+        classification_params["num_inputs"] = _classification_num_inputs(self.image_width, self.image_height, self.image_channels, self.feature_extraction_layers)
         self.classification_genome_config = DefaultGenomeConfig(classification_params)
 
 

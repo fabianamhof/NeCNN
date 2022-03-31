@@ -1,0 +1,31 @@
+# Create the data loaders for the train and test sets
+trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True, num_workers=2)
+
+testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
+
+
+features = [
+    nn.Conv2d(1, 20, 5),
+    nn.MaxPool2d(2, 2),
+    nn.ReLU(),
+    nn.Conv2d(20, 20, 5),
+    nn.MaxPool2d(2, 2),
+    nn.ReLU(),
+]
+
+classifier = [
+    nn.Linear(320, 50),
+    nn.ReLU(),
+    nn.Linear(50, 10),
+    nn.ReLU()
+]
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
+
+epochs = 3
+
+test accuracity = 98%
+
