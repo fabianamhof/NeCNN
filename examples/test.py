@@ -55,12 +55,13 @@ def eval_genome(genome, config):
     net = create_CNN(genome, config.genome_config).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
-    # visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
+    visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
     train_pytorch(net, optimizer, criterion, device)
+    net.eval()
     images, labels = next(iter(trainloader_all))
     outputs = net(images)
     loss = criterion(outputs, labels)
-    print(f"Classification Error: {classification_error(net, trainloader)}")
+    print(f"Classification Error: {classification_error(net, trainloader)}, Loss: {loss.item()}")
     genome.set_fitness(1 / (1 + loss.item()))
 
 def eval_genomes(genomes, config):
@@ -68,6 +69,7 @@ def eval_genomes(genomes, config):
         eval_genome(genome, config)
 
 def train_pytorch(net, optimizer, criterion, device):
+    net.train()
     for epoch in range(2):  # loop over the dataset multiple times
 
         running_loss = 0.0

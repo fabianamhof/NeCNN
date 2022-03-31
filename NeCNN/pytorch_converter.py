@@ -41,7 +41,7 @@ class TorchFeedForwardNetwork(torch.jit.ScriptModule):
         # end = time.perf_counter()
         # print(f"Conv, calc values: {end - start}")
         # start = time.perf_counter()
-        result = torch.cat([self.values[i] for i in self.output_nodes], dim=1)
+        result = torch.cat([self.values[i] if i in self.values else torch.zeros((len(inputs), 1)) for i in self.output_nodes], dim=1)
         # end = time.perf_counter()
         # print(f"Conv, filter outputs: {end - start}")
         return result
