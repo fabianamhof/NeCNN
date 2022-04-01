@@ -42,7 +42,7 @@ classification_enabled_default         = True
 classification_enabled_mutate_rate     = 0.01
 
 classification_feed_forward            = True
-classification_initial_connection      = partial_nodirect 0.1
+classification_initial_connection      = full_nodirect
 
 # node add/remove rates
 classification_node_add_prob           = 0.2

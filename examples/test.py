@@ -3,6 +3,8 @@
 """
 from __future__ import print_function
 
+import time
+
 import billiard as multiprocessing
 import os
 import neat
@@ -14,12 +16,12 @@ import torchvision
 import torchvision.transforms as transforms
 
 from NeCNN import visualize
-from NeCNN.Method1.genome import NECnnGenome_M1, create_CNN
-
+from NeCNN.Method1.genome import NECnnGenome_M1
+from NeCNN.pytorch_converter import create_CNN
 
 mnist_mean = 0.1307
 mnist_sd = 0.3081
-train_batch_size = 64
+train_batch_size = 10
 classification_batch_size = 1000
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mnist_mean,), (mnist_sd,))])
 
@@ -55,7 +57,7 @@ def eval_genome(genome, config):
     net = create_CNN(genome, config.genome_config).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
-    visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
+    #visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
     train_pytorch(net, optimizer, criterion, device)
     net.eval()
     images, labels = next(iter(trainloader_all))
@@ -70,9 +72,9 @@ def eval_genomes(genomes, config):
 
 def train_pytorch(net, optimizer, criterion, device):
     net.train()
+    start = time.perf_counter()
     for epoch in range(2):  # loop over the dataset multiple times
 
-        running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -86,12 +88,12 @@ def train_pytorch(net, optimizer, criterion, device):
             loss.backward()
             optimizer.step()
 
-            if i % 1999 == 0:  # print every 2000 mini-batches
+            if i % 500 == 0:  # print every 2000 mini-batches
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, i * len(inputs), len(trainloader.dataset),
                            100. * i / len(trainloader), loss.item()))
 
-    print('Finished Training')
+    print(f'Finished Training in {time.perf_counter() - start}s')
 
 def run(config_file):
     # Load configuration.

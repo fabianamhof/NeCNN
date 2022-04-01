@@ -1,11 +1,8 @@
 """Handles genomes (individuals in the population)."""
 from __future__ import division, print_function
 
-import copy
-
 import torch
 from neat.genome import *
-import NeCNN.pytorch_converter as converter
 from neat.config import ConfigParameter
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 
@@ -30,14 +27,6 @@ def lock_FE(model):
     for param in model.features.parameters():
         param.requires_grad = False
     return model
-
-def create_CNN(genome, config):
-    model = config.feature_extraction_model
-    model_copy = copy.deepcopy(model)
-    classifier = converter.TorchFeedForwardNetwork.create(genome.classification, config.classification_genome_config)
-    model_copy.classifier = classifier
-    return model_copy
-
 
 def get_num_features(model):
     return list(model.classifier.children())[0].in_features

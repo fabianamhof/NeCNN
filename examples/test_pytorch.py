@@ -1,3 +1,5 @@
+import time
+
 import torch
 from torch import nn
 from torch import optim
@@ -16,12 +18,11 @@ testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, 
 testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
 
 
-
-
 def train_pytorch(net, optimizer, criterion, device):
-    for epoch in range(3):  # loop over the dataset multiple times
+    net.train()
+    start = time.perf_counter()
+    for epoch in range(2):  # loop over the dataset multiple times
 
-        running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -35,24 +36,18 @@ def train_pytorch(net, optimizer, criterion, device):
             loss.backward()
             optimizer.step()
 
-            # print statistics
-            running_loss += loss.item()
-            if i % 10 == 0:  # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch, i, running_loss / 2000))
+            if i % 500 == 0:  # print every 2000 mini-batches
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, i * len(inputs), len(trainloader.dataset),
                            100. * i / len(trainloader), loss.item()))
-                running_loss = 0.0
 
-    print('Finished Training')
-
+    print(f'Finished Training in {time.perf_counter() - start}s')
 
 def classification_error(net):
     correct = 0
     total = 0
     with torch.no_grad():
-        for data in testloader:
+        for data in trainloader:
             images, labels = data[0].to(device), data[1].to(device)
             outputs = net(images)
             _, predicted = torch.max(outputs.data, 1)
@@ -60,13 +55,30 @@ def classification_error(net):
             correct += (predicted == labels).sum().item()
     return correct / total
 
+def load_model(path, python_class):
+    model = python_class()
+    model.load_state_dict(torch.load(path))
+    return model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
-net = Net().to(device)
+net = load_model("./results/model_good.pth", Net)
+net.to(device)
+for param in net.features.parameters():
+    param.requires_grad = False
+
+classifier = [
+    nn.Linear(320, 30),
+    nn.ReLU(),
+    nn.Linear(30, 10),
+    nn.ReLU()
+]
+
+net.classifier = nn.Sequential(*classifier)
+
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
 train_pytorch(net, optimizer, criterion, device)
-torch.save(net.state_dict(), 'results/model_good.pth')
+torch.save(net.state_dict(), 'results/model.pth')
 print(f"Classification: {classification_error(net)}")
