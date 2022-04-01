@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 import time
 from neat.graphs import feed_forward_layers
-from . import visualize
+from NeCNN import visualize
 
 from torch.nn.utils import prune
 

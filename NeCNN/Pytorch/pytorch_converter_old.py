@@ -5,8 +5,6 @@ import torch.nn as nn
 import numpy as np
 import time
 from neat.graphs import feed_forward_layers
-from . import visualize
-
 
 
 class TorchFeedForwardNetwork(nn.Module):

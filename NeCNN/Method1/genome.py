@@ -6,7 +6,7 @@ from neat.genome import *
 from neat.config import ConfigParameter
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
 
-from NeCNN.net import Net
+from NeCNN.Pytorch.net import Net
 
 
 def filter_params(keyword, params):
