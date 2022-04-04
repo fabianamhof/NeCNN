@@ -2,15 +2,17 @@ import time
 
 import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def predict(net, inputs):
+def predict(net, inputs, device='cpu'):
+    if not torch.is_tensor(inputs):
+        inputs = torch.from_numpy(inputs)
     net.to(device)
+    inputs.to(device)
     outputs = net(inputs)
     _, predicted = torch.max(outputs.data, 1)
     return predicted
 
-def classification_error(net, dataloader, batches = -1):
+def classification_error(net, dataloader, batches = -1, device='cpu'):
     net.to(device)
     correct = 0
     total = 0
@@ -25,7 +27,7 @@ def classification_error(net, dataloader, batches = -1):
             correct += (predicted == labels).sum().item()
     return correct / total
 
-def train_pytorch(net, optimizer, criterion, dataloader, printing_offset = 500):
+def train_pytorch(net, optimizer, criterion, dataloader, printing_offset = 500, device='cpu'):
     net.to(device)
     net.train()
     start = time.perf_counter()

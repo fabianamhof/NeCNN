@@ -25,19 +25,19 @@ transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mni
 
 # Create the data loaders for the train and test sets
 trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True, num_workers=2)
-trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_batch_size, shuffle=True, num_workers=2)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True)
+trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_batch_size, shuffle=True)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False, num_workers=2)
+testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False)
 
 def eval_genome(genome, config):
     net = create_CNN(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
     #visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
-    train_pytorch(net, optimizer, criterion, trainloader)
-    print(f"Classification Error: {classification_error(net, trainloader, 100)}")
+    train_pytorch(net, optimizer, criterion, trainloader, device = device)
+    print(f"Classification Error: {classification_error(net, trainloader, 100, device = device)}")
     images, labels = next(iter(trainloader_2))
     outputs = net(images)
     loss = criterion(outputs, labels)
@@ -53,6 +53,8 @@ def run(config_file):
     config = neat.Config(NECnnGenome_M1, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
@@ -70,7 +72,7 @@ def run(config_file):
 
     # Show output of the most fit genome against training data.
     winner_net = create_CNN(winner, config.genome_config)
-    print(f'\nClassification Error: {classification_error(winner_net, testloader)}')
+    print(f'\nClassification Error: {classification_error(winner_net, testloader, device = device)}')
 
     visualize.draw_net(config.genome_config.classification_genome_config, winner.classification, True)
     visualize.plot_stats(stats, ylog=False, view=True)
