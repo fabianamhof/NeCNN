@@ -12,11 +12,12 @@ transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1
 
 # Create the data loaders for the train and test sets
 trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True, num_workers=2)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
+testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 net = Net()
 net.load_state_dict(torch.load("./results/model_good.pth"))
 for param in net.features.parameters():
@@ -33,7 +34,7 @@ net.classifier = nn.Sequential(*classifier)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
-train_pytorch(net, optimizer, criterion, trainloader)
-print(f"Classification: {classification_error(net, trainloader, 100)}")
+train_pytorch(net, optimizer, criterion, trainloader, device = device)
+print(f"Classification: {classification_error(net, trainloader, device = device)}")
 
 torch.save(net.state_dict(), 'results/model.pth')
