@@ -11,53 +11,29 @@ from torch.nn.utils import prune
 
 
 class TorchFeedForwardNetwork(nn.Module):
-    def __init__(self, inputs, outputs, layers):
+    def __init__(self, inputs, outputs, layers, amount_nodes):
         super().__init__()
         self.input_nodes = inputs
         self.output_nodes = outputs
+        self.amount_nodes = amount_nodes
         self.layers = nn.ModuleList(layers)
 
     def forward(self, inputs):
-        # start = time.perf_counter()
-        values = dict()
-        # end = time.perf_counter()
-        # print(f"Conv, Init dict: {end-start}")
-        # start = time.perf_counter()
         if len(self.input_nodes) != len(inputs[0]):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 
         if not torch.is_tensor(inputs):
             inputs = torch.from_numpy(inputs).float()
 
-        # end = time.perf_counter()
-        # print(f"Conv, Error prevention: {end - start}")
-        # start = time.perf_counter()
-        for i, k in enumerate(self.input_nodes):
-            values[k] = (inputs[:, i])[:, None]
-        # end = time.perf_counter()
-        # print(f"Conv, Init inputs: {end - start}")
-        # start = time.perf_counter()
+        values = torch.zeros((len(inputs), self.amount_nodes))
+        values[:, 0:len(inputs[0])] = inputs  # First columns are for input nodes
+        # Since input nodes are numerated with negative numbers add len(inputs) to start with 0
         for layer in self.layers:
-            #start = time.perf_counter()
-            node_inputs = [values[i] for i in layer.inputs]
-            #end = time.perf_counter()
-            #print(f"Conv, calc inputs: {end - start}")
-            #start = time.perf_counter()
-            output = layer.forward(torch.cat(node_inputs, dim=1))
-            #end = time.perf_counter()
-            #print(f"Conv, Forward: {end - start}")
-            ##start = time.perf_counter()
-            for o, onode in enumerate(layer.nodes):
-                values[onode] = output[:, o, None]
-            #end = time.perf_counter()
-            #print(f"Conv, Write back: {end - start}")
+            node_inputs = values[:, [i + len(inputs[0]) for i in layer.inputs]]
+            output = layer.forward(node_inputs)
+            values[:, [i + len(inputs[0]) for i in layer.nodes]] = output
 
-        # end = time.perf_counter()
-        # print(f"Conv, calc values: {end - start}")
-        # start = time.perf_counter()
-        result = torch.cat([values[i] if i in values else torch.zeros((len(inputs), 1)) for i in self.output_nodes], dim=1)
-        # end = time.perf_counter()
-        # print(f"Conv, filter outputs: {end - start}")
+        result = values[:, [i + len(inputs[0]) for i in self.output_nodes]]
         return result
 
     @staticmethod
@@ -69,7 +45,9 @@ class TorchFeedForwardNetwork(nn.Module):
 
         layers = feed_forward_layers(config.input_keys,
                                      config.output_keys, connections)
-        node_evals = []
+
+        amount_nodes = len(config.input_keys) + len(genome.nodes)
+        layer_evals = []
         for layer in layers:
             nodes = []
             biases = []
@@ -82,19 +60,18 @@ class TorchFeedForwardNetwork(nn.Module):
                     if onode == node:
                         cg = genome.connections[conn_key]
                         inputs.append((onode, inode, cg.weight))
-            node_evals.append(NNLayer(nodes, biases, inputs))
+            layer_evals.append(NNLayer(nodes, biases, inputs))
         return TorchFeedForwardNetwork(config.input_keys,
-                                       config.output_keys, node_evals)
+                                       config.output_keys, layer_evals, amount_nodes)
 
 
 class NNLayer(nn.Module):
-    def __init__(self, nodes, bias, inputs):
+    def __init__(self, nodes, bias, links):
         super().__init__()
         self.nodes = nodes
         self.bias = bias
-        self.links = inputs
+        self.links = links
         self.layer = self.init_layer()
-
 
     def init_layer(self):
         self.inputs = self._get_inputs(self.links)
@@ -102,24 +79,16 @@ class NNLayer(nn.Module):
         return self._set_weights(layer)
 
     def _set_weights(self, layer):
-        pruning_mask = torch.ones_like(layer.weight)
-        for i, inode in enumerate(self.inputs):
-            for o, onode in enumerate(self.nodes):
-                weight = self._get_weight(inode, onode)
-                if weight == 0.0:
-                    pruning_mask[o, i] = 0
-                with torch.no_grad():
-                    layer.weight[o, i] = weight
+        pruning_mask = torch.zeros_like(layer.weight)
+        input_mapping = {inode: i for i, inode in enumerate(self.inputs)}
+        output_mapping = {onode: o for o, onode in enumerate(self.nodes)}
+        for o, i, weight in self.links:
+            with torch.no_grad():
+                layer.weight[output_mapping[o], input_mapping[i]] = weight
+                pruning_mask[output_mapping[o], input_mapping[i]] = 1
         with torch.no_grad():
             layer.bias = nn.parameter.Parameter(torch.tensor(self.bias))
         return prune.custom_from_mask(layer, "weight", mask=pruning_mask)
-
-
-    def _get_weight(self, inode, onode):
-        for o, i, weight in self.links:
-            if o == onode and i == inode:
-                return weight
-        return 0.0
 
     @staticmethod
     def _get_inputs(links):
@@ -127,10 +96,12 @@ class NNLayer(nn.Module):
         for (node, inode, weight) in links:
             if inode not in inodes:
                 inodes.append(inode)
+        inodes.sort()
         return inodes
 
     def forward(self, inputs):
         return nn.ReLU()(self.layer(inputs))
+
 
 def create_CNN(genome, config):
     model = config.feature_extraction_model

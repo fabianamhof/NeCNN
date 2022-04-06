@@ -4,13 +4,15 @@ import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def predict(net, inputs):
     net.to(device)
     outputs = net(inputs)
     _, predicted = torch.max(outputs.data, 1)
     return predicted
 
-def classification_error(net, dataloader, batches = -1):
+
+def classification_error(net, dataloader, batches=-1):
     net.to(device)
     correct = 0
     total = 0
@@ -25,7 +27,8 @@ def classification_error(net, dataloader, batches = -1):
             correct += (predicted == labels).sum().item()
     return correct / total
 
-def train_pytorch(net, optimizer, criterion, dataloader, printing_offset = 500):
+
+def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500):
     net.to(device)
     net.train()
     start = time.perf_counter()
@@ -39,16 +42,22 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset = 500):
             optimizer.zero_grad()
 
             # forward + backward + optimize
+            # start2 = time.perf_counter()
             outputs = net(inputs)
+            # print(f'Forward {time.perf_counter() - start2}s')
+            # start2 = time.perf_counter()
             loss = criterion(outputs, labels)
             running_loss += loss.item()
+            # print(f'Loss {time.perf_counter() - start2}s')
+            # start2 = time.perf_counter()
             loss.backward()
             optimizer.step()
+            # print(f'Backward {time.perf_counter() - start2}s')
 
             if i % printing_offset == 0:  # print every 2000 mini-batches
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, i * len(inputs), len(dataloader.dataset),
-                           100. * i / len(dataloader), running_loss / min(i+1, printing_offset)))
+                           100. * i / len(dataloader), running_loss / min(i + 1, printing_offset)))
                 running_loss = 0.0
     net.eval()
     print(f'Finished Training in {time.perf_counter() - start}s')

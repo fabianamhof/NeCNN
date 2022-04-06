@@ -31,11 +31,12 @@ trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False, num_workers=2)
 
+
 def eval_genome(genome, config):
     net = create_CNN(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
-    #visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
+    # visualize.draw_net(config.genome_config.classification_genome_config, genome.classification, True)
     train_pytorch(net, optimizer, criterion, trainloader)
     print(f"Classification Error: {classification_error(net, trainloader, 100)}")
     images, labels = next(iter(trainloader_2))
@@ -44,9 +45,11 @@ def eval_genome(genome, config):
     print(f"Loss: {loss.item()}")
     genome.set_fitness(1 / (1 + loss.item()))
 
+
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         eval_genome(genome, config)
+
 
 def run(config_file):
     # Load configuration.
