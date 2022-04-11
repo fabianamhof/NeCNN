@@ -11,11 +11,11 @@ from torch.nn.utils import prune
 
 
 class TorchFeedForwardNetwork(nn.Module):
-    def __init__(self, inputs, outputs, layers, amount_nodes):
+    def __init__(self, inputs, outputs, layers, node_mapping):
         super().__init__()
         self.input_nodes = inputs
         self.output_nodes = outputs
-        self.amount_nodes = amount_nodes
+        self.node_mapping = node_mapping
         self.layers = nn.ModuleList(layers)
 
     def forward(self, inputs):
@@ -25,15 +25,14 @@ class TorchFeedForwardNetwork(nn.Module):
         if not torch.is_tensor(inputs):
             inputs = torch.from_numpy(inputs).float()
 
-        values = torch.zeros((len(inputs), self.amount_nodes))
+        values = torch.zeros((len(inputs), len(self.node_mapping)))
         values[:, 0:len(inputs[0])] = inputs  # First columns are for input nodes
-        # Since input nodes are numerated with negative numbers add len(inputs) to start with 0
         for layer in self.layers:
-            node_inputs = values[:, [i + len(inputs[0]) for i in layer.inputs]]
+            node_inputs = values[:, [self.node_mapping[i] for i in layer.inputs]]
             output = layer.forward(node_inputs)
-            values[:, [i + len(inputs[0]) for i in layer.nodes]] = output
+            values[:, [self.node_mapping[i] for i in layer.nodes]] = output
 
-        result = values[:, [i + len(inputs[0]) for i in self.output_nodes]]
+        result = values[:, [self.node_mapping[i] for i in self.output_nodes]]
         return result
 
     @staticmethod
@@ -46,7 +45,11 @@ class TorchFeedForwardNetwork(nn.Module):
         layers = feed_forward_layers(config.input_keys,
                                      config.output_keys, connections)
 
-        amount_nodes = len(config.input_keys) + len(genome.nodes)
+        node_mapping = {}
+        for i, key in enumerate(sorted(config.input_keys)):
+            node_mapping[key] = i
+        for i, node in enumerate(genome.nodes):
+            node_mapping[node] = i
         layer_evals = []
         for layer in layers:
             nodes = []
@@ -62,7 +65,7 @@ class TorchFeedForwardNetwork(nn.Module):
                         inputs.append((onode, inode, cg.weight))
             layer_evals.append(NNLayer(nodes, biases, inputs))
         return TorchFeedForwardNetwork(config.input_keys,
-                                       config.output_keys, layer_evals, amount_nodes)
+                                       config.output_keys, layer_evals, node_mapping)
 
 
 class NNLayer(nn.Module):
