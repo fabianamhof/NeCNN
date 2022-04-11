@@ -76,8 +76,8 @@ def run(config_file):
                                     filename_prefix="./results/neat-checkpoint-")
     p.add_reporter(checkpoints)
 
-    # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 300)
+    # Run for up to 100 generations.
+    winner = p.run(eval_genomes, 100)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
