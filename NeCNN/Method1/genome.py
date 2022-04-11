@@ -2,7 +2,7 @@
 from __future__ import division, print_function
 
 import torch
-from neat.genome import *
+from .default_genome import *
 from neat.config import ConfigParameter
 from .genes import NeCnnNodeGene, NeCnnConnectionGene
 

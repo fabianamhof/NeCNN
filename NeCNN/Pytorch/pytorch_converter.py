@@ -61,8 +61,11 @@ class TorchFeedForwardNetwork(nn.Module):
                 for conn_key in connections:
                     inode, onode = conn_key
                     if onode == node:
-                        # cg = genome.connections[conn_key]
-                        inputs.append((onode, inode, 0.0))
+                        cg = genome.connections[conn_key]
+                        if hasattr(cg, "weight"):
+                            inputs.append((onode, inode, cg.weight))
+                        else:
+                            inputs.append((onode, inode))
             layer_evals.append(NNLayer(nodes, biases, inputs))
         return TorchFeedForwardNetwork(config.input_keys,
                                        config.output_keys, layer_evals, node_mapping)
@@ -85,18 +88,24 @@ class NNLayer(nn.Module):
         pruning_mask = torch.zeros_like(layer.weight)
         input_mapping = {inode: i for i, inode in enumerate(self.inputs)}
         output_mapping = {onode: o for o, onode in enumerate(self.nodes)}
-        for o, i, weight in self.links:
+        if len(self.links[0]) == 3:  # Has weights
+            for o, i, weight in self.links:
+                with torch.no_grad():
+                    layer.weight[output_mapping[o], input_mapping[i]] = weight
+                    pruning_mask[output_mapping[o], input_mapping[i]] = 1
+        else:
+            for o, i in self.links:
+                with torch.no_grad():
+                    pruning_mask[output_mapping[o], input_mapping[i]] = 1
+        if len(self.bias) > 0:  # has bias
             with torch.no_grad():
-                # layer.weight[output_mapping[o], input_mapping[i]] = weight
-                pruning_mask[output_mapping[o], input_mapping[i]] = 1
-        # with torch.no_grad():
-        #    layer.bias = nn.parameter.Parameter(torch.tensor(self.bias))
+                layer.bias = nn.parameter.Parameter(torch.tensor(self.bias))
         return prune.custom_from_mask(layer, "weight", mask=pruning_mask)
 
     @staticmethod
     def _get_inputs(links):
         inodes = list()
-        for (node, inode, weight) in links:
+        for _, inode, *_ in links:
             if inode not in inodes:
                 inodes.append(inode)
         inodes.sort()
