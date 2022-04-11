@@ -30,6 +30,7 @@ class Net(nn.Module):
         x = self.classifier(x)
         return x
 
+
 net = Net()
-net.load_state_dict(torch.load("./results/model.pth"))
-torch.save(net, './results/model.pt') # Save
+net.load_state_dict(torch.load("./models/model.pth"))
+torch.save(net, 'models/model.pt')  # Save

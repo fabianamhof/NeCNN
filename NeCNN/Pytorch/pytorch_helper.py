@@ -4,6 +4,7 @@ import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def predict(net, inputs, device='cpu'):
     if not torch.is_tensor(inputs):
         inputs = torch.from_numpy(inputs)
@@ -13,7 +14,8 @@ def predict(net, inputs, device='cpu'):
     _, predicted = torch.max(outputs.data, 1)
     return predicted
 
-def classification_error(net, dataloader, batches = -1, device='cpu'):
+
+def classification_error(net, dataloader, batches=-1, device='cpu'):
     net.to(device)
     correct = 0
     total = 0
@@ -28,7 +30,8 @@ def classification_error(net, dataloader, batches = -1, device='cpu'):
             correct += (predicted == labels).sum().item()
     return correct / total
 
-def train_pytorch(net, optimizer, criterion, dataloader, printing_offset = 500, device='cpu'):
+
+def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, device='cpu'):
     net.to(device)
     net.train()
     start = time.perf_counter()
@@ -54,10 +57,10 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset = 500, 
             optimizer.step()
             # print(f'Backward {time.perf_counter() - start2}s')
 
-            if i % printing_offset == 0:  # print every 2000 mini-batches
+            if i % printing_offset == 0 and printing_offset != -1:  # print every 2000 mini-batches
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, i * len(inputs), len(dataloader.dataset),
-                           100. * i / len(dataloader), running_loss / min(i+1, printing_offset)))
+                           100. * i / len(dataloader), running_loss / min(i + 1, printing_offset)))
                 running_loss = 0.0
     net.eval()
     print(f'Finished Training in {time.perf_counter() - start}s')

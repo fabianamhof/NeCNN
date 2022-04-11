@@ -156,3 +156,4 @@ Pipfile.lock
 # IDEA
 .idea/
 /NeCNN/src/launch.py
+/examples/results/

@@ -1,19 +1,20 @@
 [NEAT]
 fitness_criterion     = max
 fitness_threshold      = 0.9
-pop_size              = 3
+no_fitness_termination = True
+pop_size              = 50
 reset_on_extinction   = False
 
 [NECnnGenome_M1]
-feature_extraction_model_path = ../examples/results/model_good.pth
+feature_extraction_model_path = ./models/model_good.pth
 image_width = 28
 image_height = 28
 image_channels = 1
 
 # node activation options
-classification_classification_activation_default      = sigmoid
+classification_classification_activation_default      = relu
 classification_activation_mutate_rate  = 0.0
-classification_activation_options      = sigmoid
+classification_activation_options      = relu
 
 # node aggregation options
 classification_aggregation_default     = sum
@@ -42,7 +43,7 @@ classification_enabled_default         = True
 classification_enabled_mutate_rate     = 0.01
 
 classification_feed_forward            = True
-classification_initial_connection      = partial_direct 0.1
+classification_initial_connection      = partial_nodirect 0.1
 
 # node add/remove rates
 classification_node_add_prob           = 0.2
@@ -64,8 +65,8 @@ classification_response_replace_rate   = 0.0
 # connection weight options
 classification_weight_init_mean        = 0.0
 classification_weight_init_stdev       = 1.0
-classification_weight_max_value        = 30
-classification_weight_min_value        = -30
+classification_weight_max_value        = 1.0
+classification_weight_min_value        = -1.0
 classification_weight_mutate_power     = 0.5
 classification_weight_mutate_rate      = 0.8
 classification_weight_replace_rate     = 0.1

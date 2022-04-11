@@ -6,12 +6,16 @@ from torch import optim
 import torchvision
 import torchvision.transforms as transforms
 
+import numpy as np
+
 from NeCNN.Pytorch.net import Net
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
+
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
 # Create the data loaders for the train and test sets
-trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+ts = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+trainset = torch.utils.data.Subset(ts, np.arange(1000))
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
@@ -19,14 +23,12 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 net = Net()
-net.load_state_dict(torch.load("./results/model_good.pth"))
+net.load_state_dict(torch.load("./models/model_good.pth"))
 for param in net.features.parameters():
     param.requires_grad = False
 
 classifier = [
-    nn.Linear(320, 30),
-    nn.ReLU(),
-    nn.Linear(30, 10),
+    nn.Linear(320, 10),
     nn.ReLU()
 ]
 
@@ -34,7 +36,7 @@ net.classifier = nn.Sequential(*classifier)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
-train_pytorch(net, optimizer, criterion, trainloader, device = device)
-print(f"Classification: {classification_error(net, trainloader, device = device)}")
+train_pytorch(net, optimizer, criterion, trainloader, device=device)
+print(f"Classification: {classification_error(net, trainloader, device=device)}")
 
-torch.save(net.state_dict(), 'results/model.pth')
+torch.save(net.state_dict(), 'models/model.pth')

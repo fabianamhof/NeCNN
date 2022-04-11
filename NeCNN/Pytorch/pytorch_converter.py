@@ -87,10 +87,10 @@ class NNLayer(nn.Module):
         output_mapping = {onode: o for o, onode in enumerate(self.nodes)}
         for o, i, weight in self.links:
             with torch.no_grad():
-                layer.weight[output_mapping[o], input_mapping[i]] = weight
+                # layer.weight[output_mapping[o], input_mapping[i]] = weight
                 pruning_mask[output_mapping[o], input_mapping[i]] = 1
-        with torch.no_grad():
-            layer.bias = nn.parameter.Parameter(torch.tensor(self.bias))
+        # with torch.no_grad():
+        #    layer.bias = nn.parameter.Parameter(torch.tensor(self.bias))
         return prune.custom_from_mask(layer, "weight", mask=pruning_mask)
 
     @staticmethod
