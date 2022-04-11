@@ -25,7 +25,7 @@ class TorchFeedForwardNetwork(nn.Module):
         if not torch.is_tensor(inputs):
             inputs = torch.from_numpy(inputs).float()
 
-        values = torch.zeros((len(inputs), len(self.node_mapping)))
+        values = torch.zeros((len(inputs), len(self.node_mapping))).to(inputs.device)
         values[:, 0:len(inputs[0])] = inputs  # First columns are for input nodes
         for layer in self.layers:
             node_inputs = values[:, [self.node_mapping[i] for i in layer.inputs]]

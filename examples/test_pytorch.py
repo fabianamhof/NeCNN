@@ -14,8 +14,7 @@ from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
 # Create the data loaders for the train and test sets
-ts = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainset = torch.utils.data.Subset(ts, np.arange(1000))
+trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=10, shuffle=True)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)

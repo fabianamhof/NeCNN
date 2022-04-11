@@ -43,6 +43,9 @@ def eval_genome(genome, config):
     optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
     train_pytorch(net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
     images, labels = next(iter(trainloader_2))
+    images = images.to(device)
+    labels = labels.to(device)
+    net.to(device)
     outputs = net(images)
     loss = criterion(outputs, labels)
     print(
@@ -72,7 +75,7 @@ def run(config_file):
     p.add_reporter(checkpoints)
 
     # Run for up to 300 generations.
-    winner = p.run(3, 300)
+    winner = p.run(eval_genomes, 300)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
