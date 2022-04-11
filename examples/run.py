@@ -20,18 +20,20 @@ from NeCNN.Method1.genome import NECnnGenome_M1
 from NeCNN.Pytorch.pytorch_converter import create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 mnist_mean = 0.1307
 mnist_sd = 0.3081
-train_batch_size = 10
+num_workers = 8
+train_batch_size = 128
 classification_batch_size = 1000
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mnist_mean,), (mnist_sd,))])
 
 # Create the data loaders for the train and test sets
 trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True)
-trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_batch_size, shuffle=True)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers)
+trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_batch_size, shuffle=True, num_workers=num_workers)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False)
@@ -40,7 +42,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batc
 def eval_genome(genome, config):
     net = create_CNN(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.5)
+    optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.5)
     train_pytorch(net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
     images, labels = next(iter(trainloader_2))
     images = images.to(device)
@@ -49,7 +51,7 @@ def eval_genome(genome, config):
     outputs = net(images)
     loss = criterion(outputs, labels)
     print(
-        f"Genome: {genome.key} Loss: {loss.item()}, Classification Error: {classification_error(net, trainloader, 100, device=device)}")
+        f"Genome: {genome.key} Loss: {loss.item()}")
     genome.set_fitness(1 / (1 + loss.item()))
 
 
