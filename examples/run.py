@@ -3,6 +3,7 @@
 """
 from __future__ import print_function
 
+import multiprocessing
 import os
 import neat
 
@@ -70,9 +71,8 @@ def run(config_file):
                                     filename_prefix="./results/neat-checkpoint-")
     p.add_reporter(checkpoints)
 
-    pe = neat.ParallelEvaluator(3, eval_genome)
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 300)
+    winner = p.run(3, 300)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
