@@ -4,7 +4,7 @@ from __future__ import division, print_function
 import torch
 from neat.genome import *
 from neat.config import ConfigParameter
-from neat.genes import DefaultConnectionGene, DefaultNodeGene
+from .genes import NeCnnNodeGene, NeCnnConnectionGene
 
 from NeCNN.Pytorch.net import Net
 
@@ -17,16 +17,19 @@ def filter_params(keyword, params):
 
     return filtered_params
 
+
 def load_model(path, python_class):
     model = python_class()
     model.load_state_dict(torch.load(path))
     return model
+
 
 def lock_FE(model):
     # Prevent the trained weights from being modified
     for param in model.features.parameters():
         param.requires_grad = False
     return model
+
 
 def get_num_features(model):
     return list(model.classifier.children())[0].in_features
@@ -56,8 +59,8 @@ class NECnnGenome_M1(object):
 
     @classmethod
     def parse_config(cls, param_dict):
-        param_dict['classification_node_gene_type'] = DefaultNodeGene
-        param_dict['classification_connection_gene_type'] = DefaultConnectionGene
+        param_dict['classification_node_gene_type'] = NeCnnNodeGene
+        param_dict['classification_connection_gene_type'] = NeCnnConnectionGene
         return NECnnGenomeConfig_M1(param_dict)
 
     def __init__(self, key):

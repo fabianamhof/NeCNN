@@ -57,12 +57,12 @@ class TorchFeedForwardNetwork(nn.Module):
             inputs = []
             for node in layer:
                 nodes.append(node)
-                biases.append(genome.nodes[node].bias)
+                # biases.append(genome.nodes[node].bias)
                 for conn_key in connections:
                     inode, onode = conn_key
                     if onode == node:
-                        cg = genome.connections[conn_key]
-                        inputs.append((onode, inode, cg.weight))
+                        # cg = genome.connections[conn_key]
+                        inputs.append((onode, inode, 0.0))
             layer_evals.append(NNLayer(nodes, biases, inputs))
         return TorchFeedForwardNetwork(config.input_keys,
                                        config.output_keys, layer_evals, node_mapping)

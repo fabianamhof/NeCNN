@@ -20,7 +20,6 @@ from NeCNN.Method1.genome import NECnnGenome_M1
 from NeCNN.Pytorch.pytorch_converter import create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 mnist_mean = 0.1307
@@ -33,7 +32,8 @@ transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mni
 # Create the data loaders for the train and test sets
 trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers)
-trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_batch_size, shuffle=True, num_workers=num_workers)
+trainloader_2 = torch.utils.data.DataLoader(trainset, batch_size=classification_batch_size, shuffle=True,
+                                            num_workers=num_workers)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False)
@@ -77,7 +77,7 @@ def run(config_file):
     p.add_reporter(checkpoints)
 
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 100)
+    winner = p.run(eval_genomes, 50)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
