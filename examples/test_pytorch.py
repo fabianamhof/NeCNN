@@ -9,7 +9,7 @@ import torchvision.transforms as transforms
 import numpy as np
 
 from NeCNN.Pytorch.net import Net
-from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
+from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch, get_loss
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
@@ -20,7 +20,7 @@ trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=8)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=2048, shuffle=False, num_workers=2)
+testloader = torch.utils.data.DataLoader(trainset, batch_size=4096, shuffle=False, num_workers=2)
 
 net = Net()
 net.load_state_dict(torch.load("./models/model_good.pth"))
@@ -36,7 +36,9 @@ net.classifier = nn.Sequential(*classifier)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.5)
-train_pytorch(net, optimizer, criterion, trainloader, device=device)
+epoch_loss = train_pytorch(net, optimizer, criterion, trainloader, device=device)
+loss = get_loss(net, criterion, trainloader, device=device)
+print(f"Epoch Loss {epoch_loss}; Loss: {loss};")
 print(f"Classification: {classification_error(net, trainloader, device=device)}")
 
 torch.save(net.state_dict(), 'models/model.pth')

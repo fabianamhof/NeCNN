@@ -31,12 +31,26 @@ def classification_error(net, dataloader, batches=-1, device='cpu'):
     return correct / total
 
 
+def get_loss(net, criterion, dataloader, device='cpu'):
+    net.to(device)
+    running_loss = 0.0
+    with torch.no_grad():
+        for i, data in enumerate(dataloader):
+            images, labels = data[0].to(device), data[1].to(device)
+            outputs = net(images)
+            loss = criterion(outputs, labels)
+            running_loss += loss.item() * images.size(0)
+    return running_loss / len(dataloader.sampler)
+
+
 def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, device='cpu'):
     net.to(device)
     net.train()
     start = time.perf_counter()
+    epoch_loss = 0.0
     for epoch in range(2):  # loop over the dataset multiple times
         running_loss = 0.0
+        epoch_loss = 0.0
         for i, data in enumerate(dataloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -51,6 +65,7 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
             # start2 = time.perf_counter()
             loss = criterion(outputs, labels)
             running_loss += loss.item()
+            epoch_loss += loss.item() * inputs.size(0)
             # print(f'Loss {time.perf_counter() - start2}s')
             # start2 = time.perf_counter()
             loss.backward()
@@ -63,4 +78,6 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
                            100. * i / len(dataloader), running_loss / min(i + 1, printing_offset)))
                 running_loss = 0.0
     net.eval()
+    return epoch_loss / len(dataloader.sampler)
+
     # print(f'Finished Training in {time.perf_counter() - start}s')
