@@ -37,6 +37,7 @@ neat-python = "*"
 torch = "*"
 torchvision = "*"
 torchaudio = "*"
+pydot = "*"
 
 [dev-packages]
 
