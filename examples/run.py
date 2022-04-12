@@ -4,6 +4,8 @@
 from __future__ import print_function
 
 import os
+import pickle
+
 import neat
 import shutil
 
@@ -15,18 +17,23 @@ from torch import optim
 import torchvision
 import torchvision.transforms as transforms
 
-import numpy as np
-
-from NeCNN import visualize
 from NeCNN.Method1.genome import NECnnGenome_M1
 from NeCNN.Pytorch.pytorch_converter import create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
+
+folder = "results_test"
+
+isExist = os.path.exists(folder)
+
+if not isExist:
+    # Create a new directory because it does not exist
+    os.makedirs(folder)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 mnist_mean = 0.1307
 mnist_sd = 0.3081
-num_workers = 0
+num_workers = 8
 train_batch_size = 128
 classification_batch_size = 2048
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mnist_mean,), (mnist_sd,))])
@@ -42,7 +49,6 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batc
 
 
 def eval_genome(genome, config):
-    print("Start")
     net = create_CNN(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.5)
@@ -58,17 +64,6 @@ def eval_genomes(genomes, config):
         eval_genome(genome, config)
 
 
-def eval_genome_2(params):
-    genome, config = params
-    eval_genome(genome, config)
-
-
-def eval_genomes_par(genomes, config):
-    proc = []
-    with mp.Pool(processes=8) as pool:
-        pool.map(eval_genome_2, [(genome, config) for genome_id, genome in genomes])
-
-
 def run(config_file):
     # Load configuration.
     config = neat.Config(NECnnGenome_M1, neat.DefaultReproduction,
@@ -82,22 +77,24 @@ def run(config_file):
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
     checkpoints = neat.Checkpointer(generation_interval=10, time_interval_seconds=300,
-                                    filename_prefix="./results/neat-checkpoint-")
+                                    filename_prefix=f"{folder}/neat-checkpoint-")
+    p.add_reporter(checkpoints)
+
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes_par, 50)
+    winner = p.run(eval_genomes, 1)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
 
     # Show output of the most fit genome against training data.
     winner_net = create_CNN(winner, config.genome_config)
-    torch.save(winner_net.state_dict(), 'results/winner.pth')
-    print(f'\nClassification Error: {classification_error(winner_net, testloader, device=device)}')
 
-    visualize.draw_net(config.genome_config.classification_genome_config, winner.classification,
-                       filename="./results/net", view=False)
-    visualize.plot_stats(stats, ylog=False, filename="./results/avg_fitness.svg", view=False)
-    visualize.plot_species(stats, filename="./results/speciation.svg", view=False)
+    print(f'\nClassification Error: {classification_error(winner_net, testloader, device=device)}')  #
+
+    with open(f'{folder}/stats.pickle', 'wb') as f:
+        pickle.dump(stats, f)
+    with open(f'{folder}/winner.pickle', 'wb') as f:
+        pickle.dump(winner, f)
 
 
 if __name__ == '__main__':
@@ -106,5 +103,5 @@ if __name__ == '__main__':
     # current working directory.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward-cnn1')
-    shutil.copyfile(config_path, "./results/config")
+    shutil.copyfile(config_path, f"{folder}/config")
     run(config_path)
