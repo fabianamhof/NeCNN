@@ -3,9 +3,11 @@
 """
 from __future__ import print_function
 
-import multiprocessing
 import os
 import neat
+import shutil
+
+import multiprocessing as mp
 
 import torch
 from torch import nn
@@ -24,7 +26,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 mnist_mean = 0.1307
 mnist_sd = 0.3081
-num_workers = 8
+num_workers = 0
 train_batch_size = 128
 classification_batch_size = 2048
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mnist_mean,), (mnist_sd,))])
@@ -40,25 +42,31 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batc
 
 
 def eval_genome(genome, config):
+    print("Start")
     net = create_CNN(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.5)
-    train_pytorch(net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
-    images, labels = next(iter(trainloader_2))
-    images = images.to(device)
-    labels = labels.to(device)
-    net.to(device)
-    outputs = net(images)
-    loss = criterion(outputs, labels)
-    fitness = 1 / (1 + loss.item())
+    loss = train_pytorch(net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    fitness = 1 / (1 + loss)
     print(
-        f"Genome: {genome.key} Loss: {loss.item()} Fitness: {fitness}")
+        f"Genome: {genome.key} Loss: {loss} Fitness: {fitness}")
     genome.set_fitness(fitness)
 
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         eval_genome(genome, config)
+
+
+def eval_genome_2(params):
+    genome, config = params
+    eval_genome(genome, config)
+
+
+def eval_genomes_par(genomes, config):
+    proc = []
+    with mp.Pool(processes=8) as pool:
+        pool.map(eval_genome_2, [(genome, config) for genome_id, genome in genomes])
 
 
 def run(config_file):
@@ -75,10 +83,8 @@ def run(config_file):
     p.add_reporter(stats)
     checkpoints = neat.Checkpointer(generation_interval=10, time_interval_seconds=300,
                                     filename_prefix="./results/neat-checkpoint-")
-    p.add_reporter(checkpoints)
-
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 50)
+    winner = p.run(eval_genomes_par, 50)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -100,4 +106,5 @@ if __name__ == '__main__':
     # current working directory.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward-cnn1')
+    shutil.copyfile(config_path, "./results/config")
     run(config_path)
