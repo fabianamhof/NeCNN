@@ -231,7 +231,8 @@ class DefaultGenome(object):
                         sep='\n', file=sys.stderr);
                 self.connect_partial_nodirect(config)
 
-    def configure_crossover(self, genome1, genome2, config):
+    def configure_crossover(self, genome1, genome2,
+                            config):  # TODO Inherit edges also from the less fit parent with a specific chance
         """ Configure a new genome by crossover from two parent genomes. """
         assert isinstance(genome1.fitness, (int, float))
         assert isinstance(genome2.fitness, (int, float))
