@@ -13,7 +13,7 @@ image_channels = 1
 
 # genome compatibility options
 classification_compatibility_disjoint_coefficient = 1.0
-classification_compatibility_weight_coefficient   = 1.0
+classification_compatibility_weight_coefficient   = 0.5
 
 # connection add/remove rates
 classification_conn_add_prob           = 0.6

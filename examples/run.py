@@ -26,7 +26,7 @@ mnist_mean = 0.1307
 mnist_sd = 0.3081
 num_workers = 8
 train_batch_size = 128
-classification_batch_size = 1000
+classification_batch_size = 2048
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mnist_mean,), (mnist_sd,))])
 
 # Create the data loaders for the train and test sets
@@ -50,9 +50,10 @@ def eval_genome(genome, config):
     net.to(device)
     outputs = net(images)
     loss = criterion(outputs, labels)
+    fitness = 1 / (1 + loss.item())
     print(
-        f"Genome: {genome.key} Loss: {loss.item()}")
-    genome.set_fitness(1 / (1 + loss.item()))
+        f"Genome: {genome.key} Loss: {loss.item()} Fitness: {fitness}")
+    genome.set_fitness(fitness)
 
 
 def eval_genomes(genomes, config):
@@ -98,5 +99,5 @@ if __name__ == '__main__':
     # here so that the script will run successfully regardless of the
     # current working directory.
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config-feedforward-cnn1')
+    config_path = os.path.join(local_dir, 'config-feedforward-cnn1-weights')
     run(config_path)

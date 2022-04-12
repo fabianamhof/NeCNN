@@ -17,10 +17,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Create the data loaders for the train and test sets
 trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers = 16)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=8)
 
 testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers = 2)
+testloader = torch.utils.data.DataLoader(testset, batch_size=2048, shuffle=False, num_workers=2)
 
 net = Net()
 net.load_state_dict(torch.load("./models/model_good.pth"))

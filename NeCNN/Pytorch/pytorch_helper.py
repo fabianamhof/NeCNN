@@ -63,4 +63,4 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
                            100. * i / len(dataloader), running_loss / min(i + 1, printing_offset)))
                 running_loss = 0.0
     net.eval()
-    print(f'Finished Training in {time.perf_counter() - start}s')
+    # print(f'Finished Training in {time.perf_counter() - start}s')

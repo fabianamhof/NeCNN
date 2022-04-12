@@ -4,6 +4,7 @@ from __future__ import division, print_function
 import torch
 from .default_genome import *
 from neat.config import ConfigParameter
+from neat.genes import DefaultNodeGene, DefaultConnectionGene
 from .genes import NeCnnNodeGene, NeCnnConnectionGene
 
 from NeCNN.Pytorch.net import Net
@@ -59,8 +60,8 @@ class NECnnGenome_M1(object):
 
     @classmethod
     def parse_config(cls, param_dict):
-        param_dict['classification_node_gene_type'] = NeCnnNodeGene
-        param_dict['classification_connection_gene_type'] = NeCnnConnectionGene
+        param_dict['classification_node_gene_type'] = DefaultNodeGene
+        param_dict['classification_connection_gene_type'] = DefaultConnectionGene
         return NECnnGenomeConfig_M1(param_dict)
 
     def __init__(self, key):
