@@ -10,11 +10,12 @@ from neat.activations import ActivationFunctionSet
 from neat.aggregations import AggregationFunctionSet
 from neat.config import ConfigParameter, write_pretty_params
 from neat.genes import DefaultConnectionGene, DefaultNodeGene
+from .genes import NeCnnConnectionGene, NeCnnNodeGene
 from neat.graphs import creates_cycle
 from neat.six_util import iteritems, iterkeys
 
 
-class DefaultGenomeConfig(object):
+class ClassificationGenomeConfig(object):
     """Sets up and holds configuration information for the DefaultGenome class."""
     allowed_connectivity = ['unconnected', 'fs_neat_nohidden', 'fs_neat', 'fs_neat_hidden',
                             'full_nodirect', 'full', 'full_direct',
@@ -39,7 +40,9 @@ class DefaultGenomeConfig(object):
                         ConfigParameter('node_delete_prob', float),
                         ConfigParameter('single_structural_mutation', bool, 'false'),
                         ConfigParameter('structural_mutation_surer', str, 'default'),
-                        ConfigParameter('initial_connection', str, 'unconnected')]
+                        ConfigParameter('initial_connection', str, 'unconnected'),
+                        ConfigParameter('inherit_disjoint_coefficient_p1', float, 0.6),
+                        ConfigParameter('inherit_disjoint_coefficient_p2', float, 0.4)]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']
@@ -129,7 +132,7 @@ class DefaultGenomeConfig(object):
             raise RuntimeError(error_string)
 
 
-class DefaultGenome(object):
+class ClassificationGenome(object):
     """
     A genome for generalized neural networks.
 
@@ -155,7 +158,7 @@ class DefaultGenome(object):
     def parse_config(cls, param_dict):
         param_dict['node_gene_type'] = DefaultNodeGene
         param_dict['connection_gene_type'] = DefaultConnectionGene
-        return DefaultGenomeConfig(param_dict)
+        return ClassificationGenomeConfig(param_dict)
 
     @classmethod
     def write_config(cls, f, config):
@@ -232,7 +235,7 @@ class DefaultGenome(object):
                 self.connect_partial_nodirect(config)
 
     def configure_crossover(self, genome1, genome2,
-                            config):  # TODO Inherit edges also from the less fit parent with a specific chance
+                            config):
         """ Configure a new genome by crossover from two parent genomes. """
         assert isinstance(genome1.fitness, (int, float))
         assert isinstance(genome2.fitness, (int, float))
@@ -245,11 +248,20 @@ class DefaultGenome(object):
         for key, cg1 in iteritems(parent1.connections):
             cg2 = parent2.connections.get(key)
             if cg2 is None:
-                # Excess or disjoint gene: copy from the fittest parent.
-                self.connections[key] = cg1.copy()
+                # Excess or disjoint gene: copy
+                if random() < config.inherit_disjoint_coefficient_p1:
+                    self.connections[key] = cg1.copy()
             else:
                 # Homologous gene: combine genes from both parents.
                 self.connections[key] = cg1.crossover(cg2)
+
+        for key, cg2 in iteritems(parent2.connections):
+            cg1 = parent1.connections.get(key)
+            if cg1 is None:
+                # Excess or disjoint gene: copy
+                if random() < config.inherit_disjoint_coefficient_p2 and not creates_cycle(
+                        list(iterkeys(self.connections)), key):
+                    self.connections[key] = cg2.copy()
 
         # Inherit node genes
         parent1_set = parent1.nodes
@@ -259,11 +271,17 @@ class DefaultGenome(object):
             ng2 = parent2_set.get(key)
             assert key not in self.nodes
             if ng2 is None:
-                # Extra gene: copy from the fittest parent
+                # Extra gene: copy from the parent
                 self.nodes[key] = ng1.copy()
             else:
                 # Homologous gene: combine genes from both parents.
                 self.nodes[key] = ng1.crossover(ng2)
+
+        for key, ng2 in iteritems(parent2_set):
+            ng1 = self.nodes.get(key)
+            if ng1 is None:
+                # Extra gene: copy from the parent
+                self.nodes[key] = ng2.copy()
 
     def mutate(self, config):
         """ Mutates this genome. """

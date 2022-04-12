@@ -2,7 +2,7 @@
 fitness_criterion     = max
 fitness_threshold      = 0.9
 no_fitness_termination = True
-pop_size              = 2
+pop_size              = 50
 reset_on_extinction   = False
 
 [NECnnGenome_M1]
@@ -13,11 +13,14 @@ image_channels = 1
 
 # genome compatibility options
 classification_compatibility_disjoint_coefficient = 1.0
-classification_compatibility_weight_coefficient   = 0.5
+classification_compatibility_weight_coefficient   = 0.1
+
+classification_inherit_disjoint_coefficient_p1 = 0.8
+classification_inherit_disjoint_coefficient_p2 = 0.6
 
 # connection add/remove rates
 classification_conn_add_prob           = 0.6
-classification_conn_delete_prob        = 0.5
+classification_conn_delete_prob        = 0.3
 
 # connection enable options
 classification_enabled_default         = True
@@ -43,8 +46,8 @@ classification_aggregation_mutate_rate = 0.0
 classification_bias_init_mean          = 0.0
 classification_bias_init_stdev         = 0.2
 classification_bias_replace_rate       = 0.1
-classification_bias_mutate_rate        = 0.7
-classification_bias_mutate_power       = 0.5
+classification_bias_mutate_rate        = 0.1
+classification_bias_mutate_power       = 0.2
 classification_bias_max_value          = 30.0
 classification_bias_min_value          = -30.0
 classification_response_init_mean      = 1.0
@@ -59,9 +62,9 @@ classification_weight_max_value        = 30
 classification_weight_min_value        = -30
 classification_weight_init_mean        = 0.0
 classification_weight_init_stdev       = 0.2
-classification_weight_mutate_rate      = 0.8
+classification_weight_mutate_rate      = 0.1
 classification_weight_replace_rate     = 0.1
-classification_weight_mutate_power     = 0.5
+classification_weight_mutate_power     = 0.2
 
 [DefaultSpeciesSet]
 compatibility_threshold = 3.0

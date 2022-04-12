@@ -81,7 +81,7 @@ def run(config_file):
     p.add_reporter(checkpoints)
 
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 1)
+    winner = p.run(eval_genomes, 50)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
