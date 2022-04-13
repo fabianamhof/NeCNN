@@ -88,11 +88,10 @@ def run(config_file):
 
     # Show output of the most fit genome against training data.
     winner_net = create_CNN(winner, config.genome_config)
-    
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(winner_net.parameters(), lr=0.02, momentum=0.5)
     loss = train_pytorch(winner_net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
-    train_pytorch()
 
     print(f'\nClassification Error: {classification_error(winner_net, testloader, device=device)}')  #
 
