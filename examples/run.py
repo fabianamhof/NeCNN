@@ -21,7 +21,7 @@ from NeCNN.Method1.genome import NECnnGenome_M1
 from NeCNN.Pytorch.pytorch_converter import create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
-folder = "results_test"
+folder = "results_4"
 
 isExist = os.path.exists(folder)
 
@@ -88,6 +88,11 @@ def run(config_file):
 
     # Show output of the most fit genome against training data.
     winner_net = create_CNN(winner, config.genome_config)
+    
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(winner_net.parameters(), lr=0.02, momentum=0.5)
+    loss = train_pytorch(winner_net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    train_pytorch()
 
     print(f'\nClassification Error: {classification_error(winner_net, testloader, device=device)}')  #
 
