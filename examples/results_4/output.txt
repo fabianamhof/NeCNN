@@ -3668,4 +3668,4 @@ Connections:
 	DefaultConnectionGene(key=(441, 2), weight=0.23980614884920903, enabled=True)
 	DefaultConnectionGene(key=(492, 1), weight=0.36936253586712636, enabled=True)
 
-Classification Error: 0.1602
+Classification Error: 0.895
