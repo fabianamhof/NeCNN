@@ -244,6 +244,14 @@ class ClassificationGenome(object):
         else:
             parent1, parent2 = genome2, genome1
 
+        # Inherit node genes
+        parent1_set = parent1.nodes
+        parent2_set = parent2.nodes
+
+        for key in config.output_keys:
+            node = parent1_set.get(key)
+            self.nodes[key] = node.copy()
+
         # Inherit connection genes
         for key, cg1 in iteritems(parent1.connections):
             cg2 = parent2.connections.get(key)
@@ -251,9 +259,13 @@ class ClassificationGenome(object):
                 # Excess or disjoint gene: copy
                 if random() < config.inherit_disjoint_coefficient_p1:
                     self.connections[key] = cg1.copy()
+
             else:
                 # Homologous gene: combine genes from both parents.
                 self.connections[key] = cg1.crossover(cg2)
+            node1, node2 = key
+            self._add_node(node1, parent1, parent2)
+            self._add_node(node2, parent1, parent2)
 
         for key, cg2 in iteritems(parent2.connections):
             cg1 = parent1.connections.get(key)
@@ -262,26 +274,19 @@ class ClassificationGenome(object):
                 if random() < config.inherit_disjoint_coefficient_p2 and not creates_cycle(
                         list(iterkeys(self.connections)), key):
                     self.connections[key] = cg2.copy()
+                node1, node2 = key
+                self._add_node(node1, parent2, parent1)
+                self._add_node(node2, parent2, parent1)
 
-        # Inherit node genes
+    def _add_node(self, key, parent1, parent2):
         parent1_set = parent1.nodes
         parent2_set = parent2.nodes
-
-        for key, ng1 in iteritems(parent1_set):
-            ng2 = parent2_set.get(key)
-            assert key not in self.nodes
-            if ng2 is None:
-                # Extra gene: copy from the parent
-                self.nodes[key] = ng1.copy()
-            else:
-                # Homologous gene: combine genes from both parents.
-                self.nodes[key] = ng1.crossover(ng2)
-
-        for key, ng2 in iteritems(parent2_set):
-            ng1 = self.nodes.get(key)
-            if ng1 is None:
-                # Extra gene: copy from the parent
-                self.nodes[key] = ng2.copy()
+        n1_p1 = parent1_set.get(key)
+        n1_p2 = parent2_set.get(key)
+        if n1_p1 is not None and n1_p2 is not None:
+            self.nodes[key] = n1_p1.crossover(n1_p2)
+        if n1_p1 is not None:
+            self.nodes[key] = n1_p1.copy()
 
     def mutate(self, config):
         """ Mutates this genome. """
