@@ -10,7 +10,8 @@ feature_extraction_model_path = ./models/model_good.pth
 image_width = 28
 image_height = 28
 image_channels = 1
-
+#defaultnodegene
+#defaultconnectiongene
 # genome compatibility options
 classification_compatibility_disjoint_coefficient = 1.0
 classification_compatibility_weight_coefficient   = 0.1
