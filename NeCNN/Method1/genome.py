@@ -2,10 +2,8 @@
 from __future__ import division, print_function
 
 import torch
-from .default_genome import *
+from .classification_genome import *
 from neat.config import ConfigParameter
-from neat.genes import DefaultNodeGene, DefaultConnectionGene
-from .genes import NeCnnNodeGene, NeCnnConnectionGene
 
 from NeCNN.Pytorch.net import Net
 
@@ -50,25 +48,21 @@ class NECnnGenomeConfig_M1(object):
             setattr(self, p.name, p.interpret(params))
         self.feature_extraction_model = lock_FE(load_model(self.feature_extraction_model_path, Net))
         classification_params = filter_params("classification_", params)
-        classification_params["node_gene_type"] = params["classification_node_gene_type"]
-        classification_params["connection_gene_type"] = params["classification_connection_gene_type"]
         classification_params["num_inputs"] = get_num_features(self.feature_extraction_model)
-        self.classification_genome_config = DefaultGenomeConfig(classification_params)
+        self.classification_genome_config = ClassificationGenome.parse_config(classification_params)
 
 
 class NECnnGenome_M1(object):
 
     @classmethod
     def parse_config(cls, param_dict):
-        param_dict['classification_node_gene_type'] = DefaultNodeGene
-        param_dict['classification_connection_gene_type'] = DefaultConnectionGene
         return NECnnGenomeConfig_M1(param_dict)
 
     def __init__(self, key):
         # Unique identifier for a genome instance.
         self.key = key
 
-        self.classification = DefaultGenome(0)
+        self.classification = ClassificationGenome(0)
 
         # Fitness results.
         self.fitness = None

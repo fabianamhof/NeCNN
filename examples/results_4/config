@@ -10,9 +10,8 @@ feature_extraction_model_path = ./models/model_good.pth
 image_width = 28
 image_height = 28
 image_channels = 1
-
-#NeCnnNodeGene
-#NeCnnConnectiongene
+#defaultnodegene
+#defaultconnectiongene
 # genome compatibility options
 classification_compatibility_disjoint_coefficient = 1.0
 classification_compatibility_weight_coefficient   = 0.1
@@ -69,7 +68,7 @@ classification_weight_replace_rate     = 0.1
 classification_weight_mutate_power     = 0.2
 
 [DefaultSpeciesSet]
-compatibility_threshold = 2.0
+compatibility_threshold = 3.0
 
 [DefaultStagnation]
 species_fitness_func = max
