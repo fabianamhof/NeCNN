@@ -156,8 +156,8 @@ class ClassificationGenome(object):
 
     @classmethod
     def parse_config(cls, param_dict):
-        param_dict['node_gene_type'] = DefaultNodeGene
-        param_dict['connection_gene_type'] = DefaultConnectionGene
+        param_dict['node_gene_type'] = NeCnnNodeGene
+        param_dict['connection_gene_type'] = NeCnnConnectionGene
         return ClassificationGenomeConfig(param_dict)
 
     @classmethod
