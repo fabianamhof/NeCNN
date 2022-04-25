@@ -17,21 +17,21 @@ structural_mutation_surer = True
 #DefaultConnectionGene
 # genome compatibility options
 classification_compatibility_disjoint_coefficient = 1.0
-classification_compatibility_weight_coefficient   = 0.1
+classification_compatibility_weight_coefficient   = 1.0
 
 classification_inherit_disjoint_coefficient_p1 = 1.0
 classification_inherit_disjoint_coefficient_p2 = 1.0
 
 # connection add/remove rates
 classification_conn_add_prob           = 0.5
-classification_conn_delete_prob        = 0.0
+classification_conn_delete_prob        = 0.5
 
 # connection enable options
 classification_enabled_default         = True
-classification_enabled_mutate_rate     = 0.01
+classification_enabled_mutate_rate     = 0.0
 
 classification_feed_forward            = True
-classification_initial_connection      = partial_nodirect 0.02
+classification_initial_connection      = full_direct
 
 # node add/remove rates
 classification_node_add_prob           = 0.4
@@ -71,11 +71,11 @@ classification_weight_replace_rate     = 0.01
 classification_weight_mutate_power     = 0.2
 
 [DefaultSpeciesSet]
-compatibility_threshold = 2.5
+compatibility_threshold = 0.7
 
 [DefaultStagnation]
 species_fitness_func = max
-max_stagnation       = 20
+max_stagnation       = 10
 species_elitism      = 2
 
 [DefaultReproduction]

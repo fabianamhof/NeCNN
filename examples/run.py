@@ -21,7 +21,7 @@ from NeCNN.Method1.genome import NECnnGenome_M1
 from NeCNN.Pytorch.pytorch_converter import create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
-folder = "results_8"
+folder = "results_9"
 
 isExist = os.path.exists(folder)
 
