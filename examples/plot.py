@@ -28,18 +28,6 @@ from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 folder = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
-mnist_mean = 0.1307
-mnist_sd = 0.3081
-num_workers = 8
-train_batch_size = 128
-classification_batch_size = 2048
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((mnist_mean,), (mnist_sd,))])
-
-trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers)
-
-testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False)
 
 
 def run(config_file):
@@ -64,8 +52,8 @@ def run(config_file):
     # Show output of the most fit genome against training data.
     winner_net = create_CNN(winner, config.genome_config)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(winner_net.parameters(), lr=0.02, momentum=0.5)
-    loss = train_pytorch(winner_net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    optimizer = optim.SGD(winner_net.classifier.parameters(), lr=learning_rate, momentum=momentum)
+    loss = train_pytorch(winner_net.classifier, optimizer, criterion, trainloader, device=device, printing_offset=-1)
 
     print(f'\nLoss: {loss}; Classification Error: {classification_error(winner_net, testloader, device=device)}')
 

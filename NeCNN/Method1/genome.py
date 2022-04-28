@@ -17,8 +17,11 @@ def filter_params(keyword, params):
     return filtered_params
 
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
 def load_model(path):
-    model = torch.load(path)
+    model = torch.load(path, map_location=device)
     return model
 
 
