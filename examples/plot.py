@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import pickle
+import sys
 
 import neat
 import shutil
@@ -24,7 +25,7 @@ from NeCNN.Method1.genome import NECnnGenome_M1
 from NeCNN.Pytorch.pytorch_converter import create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
-folder = "results_9"
+folder = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 mnist_mean = 0.1307
@@ -78,6 +79,11 @@ if __name__ == '__main__':
     # Determine path to configuration file. This path manipulation is
     # here so that the script will run successfully regardless of the
     # current working directory.
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, f'{folder}/config')
+    folder = sys.argv[1]
+
+    cwd = os.getcwd()
+    sys.path.append(cwd)
+    from data_info import *
+
+    config_path = os.path.join(cwd, 'config')
     run(config_path)

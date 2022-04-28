@@ -1,44 +1,43 @@
+import os
+import sys
 import time
+
+sys.path.append(os.getcwd())
+from data_info import *
 
 import torch
 from torch import nn
 from torch import optim
-import torchvision
-import torchvision.transforms as transforms
+from torchvision import models
 
-import numpy as np
-
-from NeCNN.Pytorch.net import Net
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch, get_loss
-
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Create the data loaders for the train and test sets
-trainset = torchvision.datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=8)
-
-testset = torchvision.datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(trainset, batch_size=4096, shuffle=False, num_workers=2)
-
-net = Net()
-net.load_state_dict(torch.load("./models/model_good.pth"))
+net = models.vgg16_bn(pretrained=True).to(device)
 for param in net.features.parameters():
     param.requires_grad = False
 
-classifier = [
-    nn.Linear(320, 10),
-    nn.ReLU()
-]
+num_ftrs = list(net.classifier.children())[0].in_features
+
+classifier = [nn.Linear(in_features=num_ftrs, out_features=4096).to(device),
+              nn.ReLU(inplace=True).to(device),
+              nn.Dropout(p=0.5, inplace=False).to(device),
+              nn.Linear(in_features=4096, out_features=2048).to(device),
+              nn.ReLU(inplace=True).to(device),
+              nn.Dropout(p=0.5, inplace=False).to(device),
+              nn.Linear(in_features=2048, out_features=1024).to(device),
+              nn.ReLU(inplace=True).to(device),
+              nn.Dropout(p=0.5, inplace=False).to(device),
+              nn.Linear(in_features=1024, out_features=10, bias=True).to(device)]
 
 net.classifier = nn.Sequential(*classifier)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.02, momentum=0.5)
-epoch_loss = train_pytorch(net, optimizer, criterion, trainloader, device=device, epochs=2)
+optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=momentum)
+epoch_loss = train_pytorch(net, optimizer, criterion, trainloader, device=device, epochs=3)
 loss = get_loss(net, criterion, trainloader, device=device)
 print(f"Epoch Loss {epoch_loss}; Loss: {loss};")
 print(f"Classification: {classification_error(net, testloader, device=device)}")
 
-# torch.save(net.state_dict(), 'models/model.pth')
+torch.save(net, 'models/model.pth')

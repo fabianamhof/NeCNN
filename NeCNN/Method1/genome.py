@@ -17,9 +17,8 @@ def filter_params(keyword, params):
     return filtered_params
 
 
-def load_model(path, python_class):
-    model = python_class()
-    model.load_state_dict(torch.load(path))
+def load_model(path):
+    model = torch.load(path)
     return model
 
 
@@ -46,7 +45,7 @@ class NECnnGenomeConfig_M1(object):
                         ConfigParameter('image_height', int)]
         for p in self._params:
             setattr(self, p.name, p.interpret(params))
-        self.feature_extraction_model = lock_FE(load_model(self.feature_extraction_model_path, Net))
+        self.feature_extraction_model = lock_FE(load_model(self.feature_extraction_model_path))
         classification_params = filter_params("classification_", params)
         classification_params["num_inputs"] = get_num_features(self.feature_extraction_model)
         self.classification_genome_config = ClassificationGenome.parse_config(classification_params)

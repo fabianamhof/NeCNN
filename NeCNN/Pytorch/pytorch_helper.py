@@ -6,6 +6,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def predict(net, inputs, device='cpu'):
+    net.eval()
     if not torch.is_tensor(inputs):
         inputs = torch.from_numpy(inputs)
     net.to(device)
@@ -16,6 +17,7 @@ def predict(net, inputs, device='cpu'):
 
 
 def classification_error(net, dataloader, batches=-1, device='cpu'):
+    net.eval()
     net.to(device)
     correct = 0
     total = 0
@@ -32,6 +34,7 @@ def classification_error(net, dataloader, batches=-1, device='cpu'):
 
 
 def get_loss(net, criterion, dataloader, device='cpu'):
+    net.eval()
     net.to(device)
     running_loss = 0.0
     with torch.no_grad():
