@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import pickle
+import sched
 import sys
 
 import neat
@@ -26,8 +27,8 @@ print(f"Training on device {device}")
 def eval_genome(genome, config):
     net = create_CNN(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=momentum)
-    loss = train_pytorch(net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    optimizer = optim.SGD(net.classifier.parameters(), lr=learning_rate, momentum=momentum)
+    loss = train_pytorch(net.classifier, optimizer, criterion, trainloader, device=device, printing_offset=-1)
     fitness = 1 / (1 + loss)
     print(
         f"Genome: {genome.key} Loss: {loss} Fitness: {fitness}")
@@ -66,7 +67,7 @@ def run(config_file):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(winner_net.parameters(), lr=0.02, momentum=0.5)
-    loss = train_pytorch(winner_net, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    loss = train_pytorch(winner_net.classifier, optimizer, criterion, trainloader, device=device, printing_offset=-1)
 
     print(f'\nClassification Error: {classification_error(winner_net, testloader, device=device)}')  #
 

@@ -1,0 +1,21 @@
+Model VGG16
+from https://github.com/chenyaofo/pytorch-cifar-models/blob/master/pytorch_cifar_models/vgg.py
+net = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_vgg16_bn", pretrained=True)
+
+classifier:
+classifier = [nn.Linear(in_features=512, out_features=512).to(device),
+              nn.ReLU(inplace=True).to(device),
+              nn.Dropout(p=0.5, inplace=False).to(device),
+              nn.Linear(in_features=512, out_features=10).to(device)]
+
+optimizer {
+    type_: CustomSGD
+    basic_bs: 256
+    lr: 0.1
+    momentum: 0.9
+}
+
+
+criterion {
+    type_: CrossEntropyLoss
+}
