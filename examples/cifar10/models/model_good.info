@@ -19,3 +19,5 @@ optimizer {
 criterion {
     type_: CrossEntropyLoss
 }
+
+accuracity 0.9307
