@@ -14,15 +14,15 @@ from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch, ge
 
 from NeCNN.Pytorch.net import Net
 
-net = Net()
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+trainloader, testloader, trainloader_features, tesloader_features = load_data("models/model_good.pth")
 
-#net_cifar = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_vgg16_bn", pretrained=True)
+# net = Net()
+# net_cifar = torch.hub.load("chenyaofo/pytorch-cifar-models", "cifar10_vgg16_bn", pretrained=True)
+# net.features = net_cifar.features
+# net.classifier = net_cifar.classifier
 
-#net.features = net_cifar.features
-#net.classifier = net_cifar.classifier
-net = torch.load("models/model_good.pth")
+net = torch.load("models/model_good.pth", map_location=device)
 for param in net.features.parameters():
     param.requires_grad = False
 
@@ -37,8 +37,8 @@ net.classifier = nn.Sequential(*classifier)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.classifier.parameters(), lr=learning_rate, momentum=momentum)
-epoch_loss = train_pytorch(net.classifier, optimizer, criterion, trainloader, device=device)
-loss = get_loss(net.classifier, criterion, trainloader, device=device)
+epoch_loss = train_pytorch(net.classifier, optimizer, criterion, trainloader_features, device=device)
+loss = get_loss(net.classifier, criterion, trainloader_features, device=device)
 print(f"Epoch Loss {epoch_loss}; Loss: {loss};")
 print(f"Classification: {classification_error(net, testloader, device=device)}")
 

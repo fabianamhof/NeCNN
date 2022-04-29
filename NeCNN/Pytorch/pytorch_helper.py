@@ -2,8 +2,6 @@ import time
 
 import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 def predict(net, inputs, device='cpu'):
     net.eval()
@@ -83,3 +81,38 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
     net.eval()
     # print(f'Finished Training in {time.perf_counter() - start}s')
     return epoch_loss / len(dataloader.sampler)
+
+
+def pretrain_features(net, dataloader, device='cpu'):
+    results = None
+    labels = None
+    for i, data in enumerate(dataloader):
+        images, label = data[0], data[1]
+        net.to(device)
+        net.eval()
+        with torch.no_grad():
+            result = net(images.to(device))
+            result = torch.flatten(result, 1)
+            if results is None:
+                labels = label
+                results = result
+            else:
+                labels = torch.cat((labels, label))
+                results = torch.cat((results, result))
+
+    return results, labels
+
+
+def prepare_data(net, trainset, testset, train_batch_size, test_batch_size, num_workers):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True,
+                                              num_workers=num_workers)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=test_batch_size, shuffle=False)
+
+    trainset_features, trainset_labels = pretrain_features(net, trainloader, device=device)
+    train_features = torch.utils.data.TensorDataset(trainset_features, trainset_labels)
+
+    testset_features, testset_labels = pretrain_features(net, testloader, device=device)
+    test_features = torch.utils.data.TensorDataset(testset_features, testset_labels)
+
+    return train_features, test_features

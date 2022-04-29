@@ -21,20 +21,26 @@ import torchvision.transforms as transforms
 import numpy as np
 
 from NeCNN import visualize
-from NeCNN.Method1.genome import NECnnGenome_M1
-from NeCNN.Pytorch.pytorch_converter import create_CNN
+from NeCNN.Method1.genome import ClassificationGenome
+from NeCNN.Pytorch.pytorch_converter import TorchFeedForwardNetwork, create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
 folder = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 
+trainloader, testloader, trainloader_features, testloader_features = None, None, None, None
+
 
 def run(config_file):
     # Load configuration.
-    config = neat.Config(NECnnGenome_M1, neat.DefaultReproduction,
+    config = neat.Config(ClassificationGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
+
+    global trainloader, testloader, trainloader_features, testloader_features
+    trainloader, testloader, trainloader_features, testloader_features = load_data(
+        config.genome_config.feature_extraction_model)
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
@@ -50,14 +56,16 @@ def run(config_file):
     print('\nBest genome:\n{!s}'.format(winner))
 
     # Show output of the most fit genome against training data.
-    winner_net = create_CNN(winner, config.genome_config)
+    winner_net = TorchFeedForwardNetwork.create(winner, config.genome_config)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(winner_net.classifier.parameters(), lr=learning_rate, momentum=momentum)
-    loss = train_pytorch(winner_net.classifier, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    optimizer = optim.SGD(winner_net.parameters(), lr=learning_rate, momentum=momentum)
+    loss = train_pytorch(winner_net, optimizer, criterion, trainloader_features, device=device, printing_offset=-1)
 
-    print(f'\nLoss: {loss}; Classification Error: {classification_error(winner_net, testloader, device=device)}')
+    pretrained = torch.load(config.genome_config.feature_extraction_model, map_location=device)
+    winner_cnn = create_CNN(features=pretrained.features, classifier=winner_net)
+    print(f'\nLoss: {loss}; Classification Error: {classification_error(winner_cnn, testloader, device=device)}')
 
-    visualize.draw_net(config.genome_config.classification_genome_config, winner.classification,
+    visualize.draw_net(config.genome_config, winner,
                        filename=f"{folder}/net", view=False)
     visualize.plot_stats(stats, ylog=False, filename=f"{folder}/avg_fitness.svg", view=False)
     visualize.plot_species(stats, filename=f"{folder}/speciation.svg", view=False)
@@ -71,7 +79,8 @@ if __name__ == '__main__':
 
     cwd = os.getcwd()
     sys.path.append(cwd)
+
+    config_path = os.path.join(cwd, f'{folder}/config')
     from data_info import *
 
-    config_path = os.path.join(cwd, 'config')
     run(config_path)

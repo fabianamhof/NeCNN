@@ -42,7 +42,9 @@ class ClassificationGenomeConfig(object):
                         ConfigParameter('structural_mutation_surer', str, 'default'),
                         ConfigParameter('initial_connection', str, 'unconnected'),
                         ConfigParameter('inherit_disjoint_coefficient_p1', float, 0.6),
-                        ConfigParameter('inherit_disjoint_coefficient_p2', float, 0.4)]
+                        ConfigParameter('inherit_disjoint_coefficient_p2', float, 0.4),
+                        ConfigParameter('feature_extraction_model', str),
+                        ]
 
         # Gather configuration data from the gene classes.
         self.node_gene_type = params['node_gene_type']

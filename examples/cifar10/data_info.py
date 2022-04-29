@@ -4,71 +4,72 @@ import torchvision
 import torchvision.transforms as transforms
 import os
 
-import neat
-
-
 import torch
 import torchvision
 import torchvision.transforms as transforms
 
-from NeCNN.Method1.genome import NECnnGenome_M1
+from NeCNN.Pytorch.pytorch_helper import prepare_data
 
-num_workers = 0
-
+num_workers = 8
 train_batch_size = 256
-classification_batch_size = 1028
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-def pretrain_feature_extraction(dataloader):
-    results = None
-    labels = None
-    for i, data in enumerate(dataloader):
-        images, label = data[0], data[1]
-        cwd = os.getcwd()
-        config_path = os.path.join(cwd, 'config')
-        config = neat.Config(NECnnGenome_M1, neat.DefaultReproduction,
-                            neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                            config_path)
-        
-        model = config.genome_config.feature_extraction_model
-        model.to(device)
-        model.eval()
-        result = model.features(images.to(device))
-        result = torch.flatten(result, 1)
-        if results is None:
-            labels = label
-            results = result
-        else:
-            labels = torch.cat((labels, label))
-            results = torch.cat((results, result))
-        
-    return results, labels
-
-
-transform = transforms.Compose(
-    [
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]),
-    ])
-
-# Create the data loaders for the train and test sets
-cifar10 = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-cifar_loader = torch.utils.data.DataLoader(cifar10, batch_size=1024, shuffle=True, num_workers=num_workers)
-
-print("Preparing data by already computing outputs of the feature extraction part...")
-results, labels = pretrain_feature_extraction(cifar_loader)
-print("...done")
-
-testset = torch.utils.data.TensorDataset(results, labels)
-trainloader = torch.utils.data.DataLoader(testset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers)
-trainloader_2 = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=True,
-                                            num_workers=num_workers)
-
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=classification_batch_size, shuffle=False)
-
+test_batch_size = 1028
 learning_rate = 0.1
 momentum = 0.9
+
+
+def _get_path(path_to_model, type):
+    s = path_to_model.split("/")
+    s = s[-1].split(".")
+    s = s[0]
+    return f"./data/cifar10_{s}_{type}_features"
+
+
+def load_data(path_to_model):
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
+    if not (os.path.exists(_get_path(path_to_model, "train")) and os.path.exists(_get_path(path_to_model, "test"))):
+        store_data(path_to_model)
+
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    train_features = torch.load(_get_path(path_to_model, "train"))
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    test_features = torch.load(_get_path(path_to_model, "test"))
+    
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True,
+                                              num_workers=num_workers)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=test_batch_size, shuffle=False,
+                                             num_workers=num_workers)
+
+    trainloader_features = torch.utils.data.DataLoader(train_features, batch_size=train_batch_size, shuffle=True,
+                                                       num_workers=num_workers)
+
+    testloader_features = torch.utils.data.DataLoader(test_features, batch_size=test_batch_size, shuffle=True,
+                                                      num_workers=num_workers)
+    return trainloader, testloader, trainloader_features, testloader_features
+
+
+def store_data(path_to_model):
+    net = torch.load(path_to_model, map_location="cpu")
+    transform = transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    print("Preparing data by already computing outputs of the feature extraction part...")
+
+    train_features, test_features = prepare_data(
+        net.features, trainset, testset,
+        train_batch_size, test_batch_size,
+        num_workers)
+
+    torch.save(train_features, _get_path(path_to_model, "train"))
+    torch.save(test_features, _get_path(path_to_model, "test"))
+
+    print("...done and saved")

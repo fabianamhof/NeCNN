@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 import time
 from neat.graphs import feed_forward_layers
-from NeCNN import visualize
+from .net import Net
 
 from torch.nn.utils import prune
 
@@ -20,7 +20,7 @@ class TorchFeedForwardNetwork(nn.Module):
 
     def forward(self, inputs):
         if len(self.input_nodes) != len(inputs[0]):
-            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
+            raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs[0])))
 
         if not torch.is_tensor(inputs):
             inputs = torch.from_numpy(inputs).float()
@@ -116,9 +116,8 @@ class NNLayer(nn.Module):
         return nn.ReLU()(self.layer(inputs))
 
 
-def create_CNN(genome, config):
-    model = config.feature_extraction_model
-    model_copy = copy.deepcopy(model)
-    classifier = TorchFeedForwardNetwork.create(genome.classification, config.classification_genome_config)
-    model_copy.classifier = classifier
-    return model_copy
+def create_CNN(features, classifier):
+    net = Net()
+    net.features = copy.deepcopy(features)
+    net.classifier = classifier
+    return net

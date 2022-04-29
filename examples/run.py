@@ -14,8 +14,8 @@ import shutil
 import torch
 from torch import nn, optim
 
-from NeCNN.Method1.genome import NECnnGenome_M1
-from NeCNN.Pytorch.pytorch_converter import create_CNN
+from NeCNN.Method1.classification_genome import ClassificationGenome
+from NeCNN.Pytorch.pytorch_converter import TorchFeedForwardNetwork, create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 
 folder = None
@@ -23,16 +23,18 @@ folder = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on device {device}")
 
+trainloader, testloader, trainloader_features, testloader_features = None, None, None, None
+
 
 def eval_genome(genome, config):
-    net = create_CNN(genome, config.genome_config)
+    net = TorchFeedForwardNetwork.create(genome, config.genome_config)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.classifier.parameters(), lr=learning_rate, momentum=momentum)
-    loss = train_pytorch(net.classifier, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=momentum)
+    loss = train_pytorch(net, optimizer, criterion, trainloader_features, device=device, printing_offset=-1)
     fitness = 1 / (1 + loss)
     print(
         f"Genome: {genome.key} Loss: {loss} Fitness: {fitness}")
-    genome.set_fitness(fitness)
+    genome.fitness = fitness
 
 
 def eval_genomes(genomes, config):
@@ -42,9 +44,12 @@ def eval_genomes(genomes, config):
 
 def run(config_file):
     # Load configuration.
-    config = neat.Config(NECnnGenome_M1, neat.DefaultReproduction,
+    config = neat.Config(ClassificationGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
+    global trainloader, testloader, trainloader_features, testloader_features
+    trainloader, testloader, trainloader_features, testloader_features = load_data(
+        config.genome_config.feature_extraction_model)
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
@@ -57,19 +62,22 @@ def run(config_file):
     p.add_reporter(checkpoints)
 
     # Run for up to 100 generations.
-    winner = p.run(eval_genomes, 50)
+    winner = p.run(eval_genomes, 2)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
 
     # Show output of the most fit genome against training data.
-    winner_net = create_CNN(winner, config.genome_config)
+    winner_net = TorchFeedForwardNetwork.create(winner, config.genome_config)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(winner_net.parameters(), lr=0.02, momentum=0.5)
-    loss = train_pytorch(winner_net.classifier, optimizer, criterion, trainloader, device=device, printing_offset=-1)
+    optimizer = optim.SGD(winner_net.parameters(), lr=learning_rate, momentum=momentum)
+    loss = train_pytorch(winner_net, optimizer, criterion, trainloader_features, device=device, printing_offset=-1)
 
-    print(f'\nClassification Error: {classification_error(winner_net, testloader, device=device)}')  #
+    pretrained = torch.load(config.genome_config.feature_extraction_model, map_location=device)
+    winner_cnn = create_CNN(features=pretrained.features, classifier=winner_net)
+
+    print(f'\nClassification Error: {classification_error(winner_cnn, testloader, device=device)}')
 
     with open(f'{folder}/stats.pickle', 'wb') as f:
         pickle.dump(stats, f)
