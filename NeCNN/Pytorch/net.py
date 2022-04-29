@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-import time
 
 features = [
     nn.Conv2d(1, 20, 5),
@@ -20,22 +19,25 @@ classifier = [
 
 
 class Net(nn.Module):
+    """
+    A pytorch module that contains the feature extraction part and the classifier for a CNN.
+    """
+
     def __init__(self):
+        """
+        Creates the Network with some arbitrary Layers.
+        """
         super().__init__()
         self.features = nn.Sequential(*features)
         self.classifier = nn.Sequential(*classifier)
 
     def forward(self, x):
-        #start = time.perf_counter()
+        """
+        Forwards data through the network.
+        :param x: Data to forward through the network
+        :return: Output of the network
+        """
         x = self.features(x)
-        #end = time.perf_counter()
-        #print(f"Feature extraction: {end - start}")
-        #start = time.perf_counter()
         x = torch.flatten(x, 1)
-        #end = time.perf_counter()
-        #print(f"Flattening: {end - start}")
-        #start = time.perf_counter()
         x = self.classifier(x)
-        #end = time.perf_counter()
-        #print(f"Classification: {end - start}")
         return x

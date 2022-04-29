@@ -6,6 +6,9 @@ from neat.genes import BaseGene
 
 
 class NeCnnNodeGene(BaseGene):
+    """
+    Node gene without bias.
+    """
     _gene_attributes = []
 
     def __init__(self, key):
@@ -17,6 +20,9 @@ class NeCnnNodeGene(BaseGene):
 
 
 class NeCnnConnectionGene(BaseGene):
+    """
+    Connection gene without weights.
+    """
     _gene_attributes = [BoolAttribute('enabled')]
 
     def __init__(self, key):

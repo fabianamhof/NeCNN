@@ -1,11 +1,10 @@
 """
-2-input XOR example -- this is most likely the simplest possible example.
+Trains a network with NEAT and stores the results in the given folder.
 """
 from __future__ import print_function
 
 import os
 import pickle
-import sched
 import sys
 
 import neat

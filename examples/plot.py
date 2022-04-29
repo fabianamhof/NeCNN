@@ -1,5 +1,6 @@
 """
-2-input XOR example -- this is most likely the simplest possible example.
+Loads the winner.pickle file and stats.pickle and plots the results in the given folder.
+Also prints again the accuracy of the winner net.
 """
 from __future__ import print_function
 
@@ -8,20 +9,13 @@ import pickle
 import sys
 
 import neat
-import shutil
-
-import multiprocessing as mp
 
 import torch
 from torch import nn
 from torch import optim
-import torchvision
-import torchvision.transforms as transforms
-
-import numpy as np
 
 from NeCNN import visualize
-from NeCNN.Method1.genome import ClassificationGenome
+from NeCNN.Method1.classification_genome import ClassificationGenome
 from NeCNN.Pytorch.pytorch_converter import TorchFeedForwardNetwork, create_CNN
 from NeCNN.Pytorch.pytorch_helper import classification_error, train_pytorch
 

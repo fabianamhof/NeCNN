@@ -4,6 +4,9 @@ import torch
 
 
 def predict(net, inputs, device='cpu'):
+    """
+    Forwards inputs through network and returns predicted labels
+    """
     net.eval()
     if not torch.is_tensor(inputs):
         inputs = torch.from_numpy(inputs)
@@ -15,6 +18,13 @@ def predict(net, inputs, device='cpu'):
 
 
 def classification_error(net, dataloader, batches=-1, device='cpu'):
+    """
+    Calculates accuracy of the network
+    :param net: Network
+    :param dataloader: dataset
+    :param batches: num_batches, -1 means all batches
+    :return: accuracy
+    """
     net.eval()
     net.to(device)
     correct = 0
@@ -32,6 +42,13 @@ def classification_error(net, dataloader, batches=-1, device='cpu'):
 
 
 def get_loss(net, criterion, dataloader, device='cpu'):
+    """
+    Calculates the loss on the given dataset
+    :param net: Network to evaluate
+    :param criterion: Criterion
+    :param dataloader: Dataset
+    :return: Loss
+    """
     net.eval()
     net.to(device)
     running_loss = 0.0
@@ -45,9 +62,18 @@ def get_loss(net, criterion, dataloader, device='cpu'):
 
 
 def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, device='cpu', epochs=2):
+    """
+    Trains the network on the given dataset
+    :param net: Network to train
+    :param optimizer: Optimizer
+    :param criterion: Criterion
+    :param dataloader: Dataset
+    :param printing_offset: Default 500, prints state every 500 batches
+    :param epochs: num_epochs to train
+    :return: epoch loss of the last epoch.
+    """
     net.to(device)
     net.train()
-    start = time.perf_counter()
     epoch_loss = 0.0
     for epoch in range(epochs):  # loop over the dataset multiple times
         running_loss = 0.0
@@ -59,19 +85,14 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
             # zero the parameter gradients
             optimizer.zero_grad()
 
-            # forward + backward + optimize
-            # start2 = time.perf_counter()
             outputs = net(inputs)
-            # print(f'Forward {time.perf_counter() - start2}s')
-            # start2 = time.perf_counter()
+
             loss = criterion(outputs, labels)
             running_loss += loss.item()
             epoch_loss += loss.item() * inputs.size(0)
-            # print(f'Loss {time.perf_counter() - start2}s')
-            # start2 = time.perf_counter()
+
             loss.backward()
             optimizer.step()
-            # print(f'Backward {time.perf_counter() - start2}s')
 
             if i % printing_offset == 0 and printing_offset != -1:  # print every 2000 mini-batches
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
@@ -79,11 +100,17 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
                            100. * i / len(dataloader), running_loss / min(i + 1, printing_offset)))
                 running_loss = 0.0
     net.eval()
-    # print(f'Finished Training in {time.perf_counter() - start}s')
+
     return epoch_loss / len(dataloader.sampler)
 
 
 def pretrain_features(net, dataloader, device='cpu'):
+    """
+    Forwards the given dataset on the given netowork
+    :param net: Network
+    :param dataloader: Dataset
+    :return: Tuple of results of the network and labels
+    """
     results = None
     labels = None
     for i, data in enumerate(dataloader):
@@ -104,10 +131,21 @@ def pretrain_features(net, dataloader, device='cpu'):
 
 
 def prepare_data(net, trainset, testset, train_batch_size, test_batch_size, num_workers):
+    """
+    Uses the network to compute the outputs.
+    :param net: Network
+    :param trainset: Train Dataset
+    :param testset: Test Dataset
+    :param train_batch_size: Batch_size for training set evaluation
+    :param test_batch_size: Batch size for test set evaluation
+    :param num_workers: num_workers for the dataloaders
+    :return: outputs of the network for trainset and testset
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True,
                                               num_workers=num_workers)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=test_batch_size, shuffle=False)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=test_batch_size, shuffle=False,
+                                             num_workers=num_workers)
 
     trainset_features, trainset_labels = pretrain_features(net, trainloader, device=device)
     train_features = torch.utils.data.TensorDataset(trainset_features, trainset_labels)

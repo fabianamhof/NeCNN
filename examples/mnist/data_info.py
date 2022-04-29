@@ -1,7 +1,7 @@
-from xml.dom import NoModificationAllowedErr
-import torch
-import torchvision
-import torchvision.transforms as transforms
+"""
+Module that holds information about the training parameters and the dataset.
+Also provides a function load_data() that returns the dataloader classes for both, the original data and the extracted features.
+"""
 import os
 
 import torch
@@ -31,6 +31,11 @@ def _get_path(path_to_model, type):
 
 
 def load_data(path_to_model):
+    """
+    Loads the extracted features from the given model
+    :param path_to_model: path to the model that is responsible for the feature extraction.
+    :return: train and testloader for original data and extracted features.
+    """
     if not (os.path.exists(_get_path(path_to_model, "train")) and os.path.exists(_get_path(path_to_model, "test"))):
         store_data(path_to_model)
 
