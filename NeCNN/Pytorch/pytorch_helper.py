@@ -119,7 +119,7 @@ def pretrain_features(net, dataloader, device='cpu'):
         net.eval()
         with torch.no_grad():
             result = net(images.to(device))
-            result = torch.flatten(result, 1)
+            result = torch.flatten(result, 1).cpu()
             if results is None:
                 labels = label
                 results = result
