@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import pickle
 import sys
+import time
 
 import neat
 import shutil
@@ -56,7 +57,7 @@ def run(config_file):
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
-    checkpoints = neat.Checkpointer(generation_interval=10, time_interval_seconds=300,
+    checkpoints = neat.Checkpointer(generation_interval=10, time_interval_seconds=2000,
                                     filename_prefix=f"{folder}/neat-checkpoint-")
     p.add_reporter(checkpoints)
 
@@ -97,7 +98,7 @@ if __name__ == '__main__':
 
     cwd = os.getcwd()
     sys.path.append(cwd)
-    from data_info import *
+    from data_info_2 import *
 
     config_path = os.path.join(cwd, 'config')
     shutil.copyfile(config_path, f"{cwd}/{folder}/config")

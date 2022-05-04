@@ -1,0 +1,20 @@
+Model Resnet-18
+from pytorch pretrained
+
+classifier:
+classifier = [  (0): Linear(in_features=512, out_features=10, bias=True) ]
+
+optimizer {
+    type_: SGD
+    basic_bs: 64
+    lr: 0.01
+    momentum: 0.9
+}
+
+
+criterion {
+    type_: CrossEntropyLoss
+}
+
+accuracity 0.7819
+Epoch Loss 0.640227966632843; Loss: 0.58932946767807
