@@ -75,6 +75,6 @@ if __name__ == '__main__':
     sys.path.append(cwd)
 
     config_path = os.path.join(cwd, f'{folder}/config')
-    from data_info import *
+    from data_info_2 import *
 
     run(config_path)

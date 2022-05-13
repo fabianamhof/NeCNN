@@ -39,8 +39,8 @@ num_inputs              = 512
 num_hidden              = 0
 num_outputs             = 10
 
-activation_default      = sigmoid
-activation_options      = sigmoid
+activation_default      = relu
+activation_options      = relu
 activation_mutate_rate  = 0.0
 aggregation_default     = sum
 aggregation_options     = sum
