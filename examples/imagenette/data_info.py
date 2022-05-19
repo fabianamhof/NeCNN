@@ -14,15 +14,15 @@ from torchvision.datasets.utils import download_url
 from NeCNN.Pytorch.pytorch_helper import prepare_data
 
 num_workers = 8
-train_batch_size = 64
+train_batch_size = 16
 test_batch_size = 64
-learning_rate = 0.01
+learning_rate = 0.001
 momentum = 0.9
 
 stats = ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 transform = transforms.Compose(
     [
-        transforms.Resize((254, 254)),
+        transforms.Resize((224,224)),
         transforms.ToTensor(),
         transforms.Normalize(*stats, inplace=True)
     ])

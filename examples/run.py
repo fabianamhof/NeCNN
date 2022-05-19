@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     cwd = os.getcwd()
     sys.path.append(cwd)
-    from data_info_2 import *
+    from data_info import *
 
     config_path = os.path.join(cwd, 'config')
     shutil.copyfile(config_path, f"{cwd}/{folder}/config")
