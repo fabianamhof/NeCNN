@@ -1,4 +1,4 @@
-Model VGG16
+Model resnet18
 net = models.resnet18(pretrained=True)
 
 classifier:

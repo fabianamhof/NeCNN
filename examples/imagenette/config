@@ -6,7 +6,7 @@ pop_size              = 50
 reset_on_extinction   = False
 
 [ClassificationGenome]
-feature_extraction_model = ./models/resnet_18.pth
+feature_extraction_model = ./models/resnet_50.pth
 
 structural_mutation_surer = True
 
@@ -21,11 +21,11 @@ inherit_disjoint_coefficient_p2 = 1.0
 
 # connection add/remove rates
 conn_add_prob           = 0.5
-conn_delete_prob        = 0.0
+conn_delete_prob        = 0.1
 
 # connection enable options
 enabled_default         = True
-enabled_mutate_rate     = 0.01
+enabled_mutate_rate     = 0.00
 
 feed_forward            = True
 initial_connection      = partial_nodirect 0.02
@@ -35,7 +35,7 @@ node_add_prob           = 0.4
 node_delete_prob        = 0.4
 
 # network parameters
-num_inputs              = 512
+num_inputs              = 2048
 num_hidden              = 0
 num_outputs             = 10
 
@@ -78,4 +78,4 @@ species_elitism      = 2
 
 [DefaultReproduction]
 elitism            = 5
-survival_threshold = 0.4
+survival_threshold = 0.3
