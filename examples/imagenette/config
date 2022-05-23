@@ -6,7 +6,7 @@ pop_size              = 50
 reset_on_extinction   = False
 
 [ClassificationGenome]
-feature_extraction_model = ./models/model_good.pth
+feature_extraction_model = ./models/resnet_18.pth
 
 structural_mutation_surer = True
 
