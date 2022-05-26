@@ -61,7 +61,7 @@ def get_loss(net, criterion, dataloader, device='cpu'):
     return running_loss / len(dataloader.sampler)
 
 
-def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, device='cpu', epochs=2):
+def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, device='cpu', epochs=2, scheduler=None):
     """
     Trains the network on the given dataset
     :param net: Network to train
@@ -99,6 +99,8 @@ def train_pytorch(net, optimizer, criterion, dataloader, printing_offset=500, de
                     epoch, i * len(inputs), len(dataloader.dataset),
                            100. * i / len(dataloader), running_loss / min(i + 1, printing_offset)))
                 running_loss = 0.0
+        if scheduler is not None:
+            scheduler.step()
     net.eval()
 
     return epoch_loss / len(dataloader.sampler)

@@ -38,6 +38,7 @@ torch = "*"
 torchvision = "*"
 torchaudio = "*"
 pydot = "*"
+tqdm = "*"
 
 [dev-packages]
 

@@ -30,22 +30,26 @@ def _get_path(path_to_model, type):
     return f"./data/mnist_{s}_{type}_features"
 
 
-def load_data(path_to_model):
+def load_data(path_to_model=None):
     """
     Loads the extracted features from the given model
     :param path_to_model: path to the model that is responsible for the feature extraction.
     :return: train and testloader for original data and extracted features.
     """
-    if not (os.path.exists(_get_path(path_to_model, "train")) and os.path.exists(_get_path(path_to_model, "test"))):
-        store_data(path_to_model)
-
-    train_features = torch.load(_get_path(path_to_model, "train"))
-    test_features = torch.load(_get_path(path_to_model, "test"))
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=train_batch_size, shuffle=True,
                                               num_workers=num_workers)
     testloader = torch.utils.data.DataLoader(testset, batch_size=test_batch_size, shuffle=False,
                                              num_workers=num_workers)
+
+    if(path_to_model is None):
+        return trainloader, testloader
+
+    if not (os.path.exists(_get_path(path_to_model, "train")) and os.path.exists(_get_path(path_to_model, "test"))):
+        store_data(path_to_model)
+
+    train_features = torch.load(_get_path(path_to_model, "train"))
+    test_features = torch.load(_get_path(path_to_model, "test"))
 
     trainloader_features = torch.utils.data.DataLoader(train_features, batch_size=train_batch_size, shuffle=True,
                                                        num_workers=num_workers)

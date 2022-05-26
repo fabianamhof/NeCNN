@@ -6,7 +6,7 @@ pop_size              = 50
 reset_on_extinction   = False
 
 [ClassificationGenome]
-feature_extraction_model = ./models/model_good.pth
+feature_extraction_model = ./models/resnet50.pth
 
 structural_mutation_surer = True
 
@@ -35,7 +35,7 @@ node_add_prob           = 0.4
 node_delete_prob        = 0.4
 
 # network parameters
-num_inputs              = 320
+num_inputs              = 2048
 num_hidden              = 0
 num_outputs             = 10
 
