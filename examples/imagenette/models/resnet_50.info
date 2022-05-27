@@ -2,10 +2,7 @@ Model resnet50
 net = models.resnet50(pretrained=True)
 
 classifier:
-classifier = [nn.Linear(in_features=2058, out_features=512).to(device), 
-              nn.ReLU(inplace=True).to(device), 
-              nn.Dropout(p=0.5, inplace=False).to(device), 
-              nn.Linear(in_features=512, out_features=10).to(device)]
+classifier = [nn.Linear(in_features=2048, out_features=10)]
 
 optimizer {
     type_: SGD

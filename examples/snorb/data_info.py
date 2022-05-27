@@ -13,6 +13,7 @@ from torchvision.datasets import ImageFolder
 from torchvision.datasets.utils import download_url
 
 from NeCNN.Pytorch.pytorch_helper import prepare_data
+from PIL import Image
 from small_norb_wrapper.dataset import SmallNORBDataset
 
 num_workers = 8
@@ -23,7 +24,7 @@ momentum = 0.9
 
 transform = transforms.Compose(
     [
-        transforms.Grayscale(),
+        #transforms.Grayscale(),
         transforms.ToTensor(),
     ])
 
@@ -41,19 +42,19 @@ def download_data(path, dest):
             shutil.copyfileobj(s_file, d_file)
 
 
-files = {
+if not os.path.exists(data_dir):
+    files = {
     "smallnorb-5x46789x9x18x6x2x96x96-training-cat.mat": "https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x46789x9x18x6x2x96x96-training-cat.mat.gz",
     "smallnorb-5x46789x9x18x6x2x96x96-training-dat.mat": "https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x46789x9x18x6x2x96x96-training-dat.mat.gz",
     "smallnorb-5x46789x9x18x6x2x96x96-training-info.mat": "https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x46789x9x18x6x2x96x96-training-info.mat.gz",
     "smallnorb-5x01235x9x18x6x2x96x96-testing-cat.mat": "https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x01235x9x18x6x2x96x96-testing-cat.mat.gz",
     "smallnorb-5x01235x9x18x6x2x96x96-testing-dat.mat": "https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x01235x9x18x6x2x96x96-testing-dat.mat.gz",
     "smallnorb-5x01235x9x18x6x2x96x96-testing-info.mat": "https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x01235x9x18x6x2x96x96-testing-info.mat.gz",
-}
+    }
 
-for dest, path in files.items():
-    download_data(path, dest)
+    for dest, path in files.items():
+        download_data(path, dest)
 
-if not os.path.exists(data_dir):
     # Initialize the dataset from the folder in which
     # dataset archives have been uncompressed
     dataset = SmallNORBDataset(dataset_root='./data')
@@ -66,8 +67,8 @@ print(classes)
 
 # Look into the data directory
 
-trainset = ImageFolder(data_dir + '/train', transform)
-testset = ImageFolder(data_dir + '/test', transform)
+trainset = ImageFolder(data_dir + '/train', transform, loader=lambda path: Image.open(path).convert("L"))
+testset = ImageFolder(data_dir + '/test', transform, loader=lambda path: Image.open(path).convert("L"))
 
 
 def _get_path(path_to_model, type):
