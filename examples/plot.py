@@ -31,11 +31,6 @@ def run(config_file):
     config = neat.Config(ClassificationGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
-
-    global trainloader, testloader, trainloader_features, testloader_features
-    trainloader, testloader, trainloader_features, testloader_features = load_data(
-        config.genome_config.feature_extraction_model)
-
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
     # Add a stdout reporter to show progress in the terminal.
@@ -45,6 +40,15 @@ def run(config_file):
 
     with open(f"{folder}/winner.pickle", 'rb') as file:
         winner = pickle.load(file)
+
+    visualize.draw_net(config.genome_config, winner,
+                       filename=f"{folder}/net", view=False)
+    visualize.plot_stats(stats, ylog=False, filename=f"{folder}/avg_fitness.svg", view=False)
+    visualize.plot_species(stats, filename=f"{folder}/speciation.svg", view=False)
+
+    global trainloader, testloader, trainloader_features, testloader_features
+    trainloader, testloader, trainloader_features, testloader_features = load_data(
+        config.genome_config.feature_extraction_model)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -58,11 +62,6 @@ def run(config_file):
     pretrained = torch.load(config.genome_config.feature_extraction_model, map_location=device)
     winner_cnn = create_CNN(features=pretrained.features, classifier=winner_net)
     print(f'\nLoss: {loss}; Classification Error: {classification_error(winner_cnn, testloader, device=device)}')
-
-    visualize.draw_net(config.genome_config, winner,
-                       filename=f"{folder}/net", view=False)
-    visualize.plot_stats(stats, ylog=False, filename=f"{folder}/avg_fitness.svg", view=False)
-    visualize.plot_species(stats, filename=f"{folder}/speciation.svg", view=False)
 
 
 if __name__ == '__main__':
